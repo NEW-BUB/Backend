@@ -18,7 +18,8 @@ def get_keyword(texts, stopwords=None):
         '사람들', '그것', '어떻게', '무엇', '왜', '다시', '거기', '저기', '여기', '거의', 
         '대부분', '당시', '그날', '다음', '그때', '이번', '언제나', '항상', '자주', 
         '가끔', '종종', '한번', '정도', '약간', '대략', '완전히', '전혀', '더불어', 
-        '심지어', '더구나', '확실히', '분명히', '있다고'
+        '심지어', '더구나', '확실히', '분명히', '있다고', '가운데', '오후', '이라며',
+        '이라', '경우', '결과', '이달', '있어', '대해', '기존', '향후', '비롯'
     ]
         
 
@@ -38,28 +39,24 @@ def get_keyword(texts, stopwords=None):
         beta=0.85,
         max_iter=20
     )
-
-    # 🔸 조사 및 어미 제거 후 키워드 정리
-    # def clean_keyword(keyword):
-    #     # 특정 어미나 조사가 있으면 제거
-    #     return re.sub(r'(이다|하다|한|를|을|이|가|에|의|은|는|한다|으로|로|까지|에|게|적|고)$', '', keyword)
-
-    # cleaned_keywords = {clean_keyword(k): v for k, v in keywords.items() if clean_keyword(k)}
     
     filtered_keywords = {
         k: v for k, v in keywords.items()
-        if not re.match(r'.*(이다|하다|한|를|을|이|가|에|의|은|는|한다|으로|로|까지|에|게|적|고)$', k)  # 조사/어미로 끝나는 키워드 제거
+        if not re.match(r'.*(다|이다|있다|한다|했다|하다|보다|한|를|될|을|이|가|에|의|은|는|로|까지|에|게|적|고|며|면|서|부터)$', k)  # 조사/어미로 끝나는 키워드 제거
     }
-
-    # 🔸 불용어 제거
-    for stopword in stopwords:
-        texts = re.sub(r'\b' + stopword + r'\b', ' ', texts)  # 단어 단위 제거
 
     # 🔸 DataFrame 변환
     df = pd.DataFrame(
         sorted(filtered_keywords.items(), key=lambda x: -x[1]), 
         columns=['Keyword', 'Score']
     )
+
+    # 불용어 제거: 'Keyword' 컬럼에서 불용어를 제외한 새로운 리스트 생성
+    df['Keyword'] = df['Keyword'].apply(lambda x: ' '.join([word for word in x.split() if word not in stopwords]))
+
+    # 불용어를 제외한 키워드만 남기기 (불용어가 포함된 키워드는 제거됨)
+    df = df[df['Keyword'].str.strip() != '']
+    
     return df.head(20)
 
 
@@ -100,7 +97,7 @@ def get_news(url):
     stopwords = [
         "작가의", "이야기", "포함한", "최대", "매일", "출시", "국내", "정말로", 
         "사실", "보도에 따르면", "출처", "기자", "결국", "따라서","즉", "그래서", 
-        "결과적으로", "검색"
+        "결과적으로", "검색", "문제", "즐길", "놀러", "나들", "열린", "넘어"
     ]
 
     print(f"\n📰 기사 URL: {url}")

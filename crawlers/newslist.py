@@ -9,7 +9,7 @@ client_id = settings.NAVER_CLIENT_ID
 client_secret = settings.NAVER_CLIENT_SECRET
 
 encText = urllib.parse.quote("환경")
-display = 5
+display = 10
 url = "https://openapi.naver.com/v1/search/news?query=" + encText + "&display=" + str(display)
 
 request = urllib.request.Request(url)
