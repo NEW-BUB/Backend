@@ -31,13 +31,13 @@ for year in years:
     time.sleep(2)
 
     try:
-        articles = driver.find_elements(By.CSS_SELECTOR, ".TfNf9sJcYgST8OF_Bzp8 .EPe0s1rCZZ86kDLT_SY2")
+        articles = driver.find_elements(By.CSS_SELECTOR, ".wkoGSxciodT_CpdKvH30 .dZQQMujvOqnxG1bUQsg6") # 실행시 안될 경우 변경 필요
         if articles:
             for article in articles[:3]:  # 최대 3개만 반복
                 try:
                     title_span = article.find_element(By.CSS_SELECTOR, ".sds-comps-text.sds-comps-text-type-headline1")
                     title = title_span.text
-                    link_a = article.find_element(By.CSS_SELECTOR, ".Xjmc2FydT7OB9hmaylFX > a")
+                    link_a = article.find_element(By.CSS_SELECTOR, ".sds-comps-vertical-layout .sds-comps-full-layout > a")
                     link = link_a.get_attribute("href")
                     date_elem = article.find_elements(By.CSS_SELECTOR, "div.sds-comps-profile-info > span:nth-child(3) > span")[0]
                     date = date_elem.text
