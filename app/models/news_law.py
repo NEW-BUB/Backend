@@ -10,4 +10,4 @@ class NewsLaw(Base):
     news_id = Column(Integer, ForeignKey("news.id"))
 
     law = relationship("Law", back_populates="news")
-    news = relationship("News", back_populates="laws")
+    news = relationship("News", back_populates="law")

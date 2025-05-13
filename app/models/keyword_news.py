@@ -10,4 +10,4 @@ class KeywordNews(Base):
     news_id = Column(Integer, ForeignKey("news.id"))
 
     keyword = relationship("Keyword", back_populates="news")
-    news = relationship("News", back_populates="keywords")
+    news = relationship("News", back_populates="keyword")

@@ -9,5 +9,6 @@ class Keyword(Base):
     name = Column(String)
 
     news = relationship("KeywordNews", back_populates="keyword")
-    laws = relationship("KeywordLaw", back_populates="keyword")
-    party_contributions = relationship("KeywordPartyContribution", back_populates="keyword")
+    law = relationship("KeywordLaw", back_populates="keyword")
+    party_contribution = relationship("KeywordPartyContribution", back_populates="keyword")
+    category = relationship("CategoryKeyword", back_populates="keyword")

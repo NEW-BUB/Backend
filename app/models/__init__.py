@@ -5,8 +5,11 @@ from .news import News
 from .keyword import Keyword
 from .party import Party
 from .law import Law
+from .category import Category
 from .keyword_news import KeywordNews
 from .keyword_law import KeywordLaw
 from .keyword_party_contribution import KeywordPartyContribution
 from .news_law import NewsLaw
-from .party_contribution import PartyContribution
+from .law_party_contribution import PartyContribution
+from .category_news import CategoryNews
+from .category_keyword import CategoryKeyword

@@ -7,9 +7,15 @@ class Law(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    pdf_link = Column(String)
+    number = Column(Integer)
+    proponent = Column(String)
+    date = Column(Date)
     processing_status = Column(String)
+    processing_result = Column(String)
+    contents = Column(String)
+    link = Column(String)
 
-    keywords = relationship("KeywordLaw", back_populates="law")
+
+    keyword = relationship("KeywordLaw", back_populates="law")
     news = relationship("NewsLaw", back_populates="law")
-    party_contributions = relationship("PartyContribution", back_populates="law")
+    party_contribution = relationship("LawPartyContribution", back_populates="law")

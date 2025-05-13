@@ -7,7 +7,6 @@ class Party(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    img = Column(String)
 
-    keyword_contributions = relationship("KeywordPartyContribution", back_populates="party")
-    law_contributions = relationship("PartyContribution", back_populates="party")
+    keyword_contribution = relationship("KeywordPartyContribution", back_populates="party")
+    law_contribution = relationship("LawPartyContribution", back_populates="party")

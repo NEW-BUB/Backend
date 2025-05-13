@@ -11,6 +11,8 @@ class News(Base):
     img = Column(String)
     author = Column(String)
     text = Column(String)
+    link = Column(String)
 
-    keywords = relationship("KeywordNews", back_populates="news")
-    laws = relationship("NewsLaw", back_populates="news")
+    keyword = relationship("KeywordNews", back_populates="news")
+    law = relationship("NewsLaw", back_populates="news")
+    category = relationship("CategoryNews", back_populates="news")
