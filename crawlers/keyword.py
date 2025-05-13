@@ -63,6 +63,9 @@ def get_keyword(texts, stopwords=None):
     import pandas as pd
     import re
 
+    if stopwords is None:
+        stopwords = []
+
     # 🔸 기본 불용어 설정
     stopwords += [
         '있다', '한다', '위해', '대한', '통해', '및', '등', '제', '의', '있는',
