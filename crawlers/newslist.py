@@ -98,3 +98,7 @@ def get_past_news_list():
         print()
         print("전체 리스트")
         print(df)
+
+if __name__ == "__main__":
+    get_news_list_from_naver_api();
+    # get_past_news_list();

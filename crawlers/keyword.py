@@ -102,7 +102,7 @@ def get_keyword(text, stopwords=None, count=1):
         sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
 
         # ✅ 키워드 추출
-        keywords = summarize_with_keywords(
+        keywords =  summarize_with_keywords(
             sentences,
             min_count=count,
             max_length=10,
@@ -112,7 +112,8 @@ def get_keyword(text, stopwords=None, count=1):
 
         filtered_keywords = {
             k: v for k, v in keywords.items()
-            if not re.match(r'.*(다|이다|있다|한다|했다|하다|보다|한|를|될|을|이|가|의|은|는|로|까지|에|게|적|고|며|면|서|부터)$', k)  # 조사/어미로 끝나는 키워드 제거
+            if not re.match(r'.*(다|이다|있다|한다|했다|하다|보다|한|를|될|을|이|가|의|은|는|로|까지|에|게|적|고|며|면|서|부터|인인|용|른|된|춘|하|운|나|와|할)$', k)  # 조사/어미로 끝나는 키워드 제거
+            if not re.search(r'째', k) # 해당 부분이 포함되면 제거
         }
 
         # 🔸 DataFrame 변환
