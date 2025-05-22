@@ -67,7 +67,7 @@ def get_news(url):
         
         # 키워드 추출
         print("\n=== 외부 라이브러리 없이 키워드 추출 ===")
-        keywords1 = get_keyword(text, stopwords, 2)
+        keywords1 = get_news_keyword(text, stopwords, 2)
         for keyword, score in keywords1:
             print(f"{keyword}: {score}")
         
