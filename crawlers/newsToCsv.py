@@ -98,9 +98,6 @@ def crawl_news(key):
     except FileNotFoundError:
         existing_data = {}
 
-    # 새 데이터를 저장할 리스트
-    # new_data = []
-
     for url, category in categories.items():
         print(f"[{category}] 크롤링 시작")
         feed = feedparser.parse(rss_url + url)
@@ -121,7 +118,6 @@ def crawl_news(key):
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(existing_data.values())
-        # writer.writerows(new_data)
 
     print("모든 카테고리 크롤링 완료!")
 
@@ -169,7 +165,6 @@ def crawl_yonhap_news(entry, existing_data, category):
 
 def crawl_kyunghyang_news(entry, existing_data, category):
     link = entry.link
-    print(link)
     if link in existing_data:
         current_categories = existing_data[link]["categories"].split(", ")
         if category not in current_categories:
@@ -204,7 +199,6 @@ def crawl_kyunghyang_news(entry, existing_data, category):
                 "img_src": img_src,
                 "text": text or "본문 없음",
             }
-            # new_data.append(article_data)
             existing_data[link] = article_data
             
             print(f"저장 완료: {entry.title} [{category}]")
@@ -246,7 +240,6 @@ def crawl_chosun_news(entry, existing_data, category):
                 "img_src": img_src,
                 "text": text or "본문 없음",
             }
-            # new_data.append(article_data)
             existing_data[link] = article_data
             
             print(f"저장 완료: {entry.title} [{category}]")
@@ -255,7 +248,6 @@ def crawl_chosun_news(entry, existing_data, category):
 
 def crawl_donga_news(entry, existing_data, category):
     link = entry.link
-    print(link)
     if link in existing_data:
         current_categories = existing_data[link]["categories"].split(", ")
         if category not in current_categories:
@@ -275,11 +267,6 @@ def crawl_donga_news(entry, existing_data, category):
                         break
             else:
                 img_src = None
-            
-            # div = soup.find("div", class_="article_word")
-            # paragraphs = div.find_all("p")[:-2] if div else []
-            # text = " ".join(p.get_text(strip=True) for p in paragraphs)
-            # soup = BeautifulSoup(html_content, "html.parser")
     
             # 본문 영역 찾기
             article_div = soup.find('section', class_='news_view')
@@ -298,8 +285,6 @@ def crawl_donga_news(entry, existing_data, category):
             text = ' '.join(texts)
             text = text.replace("BYLINE", "").replace("//BYLINE", "").replace("//", "").strip()
             
-            # print(text)
-            
             article_data = {
                 "categories": category,
                 "title": entry.title,
@@ -309,7 +294,6 @@ def crawl_donga_news(entry, existing_data, category):
                 "img_src": img_src,
                 "text": text or "본문 없음",
             }
-            # new_data.append(article_data)
             existing_data[link] = article_data
             
             print(f"저장 완료: {entry.title} [{category}]")
@@ -326,7 +310,10 @@ def crawl_hani_news(entry, existing_data, category):
         print(f"업데이트 완료: {entry.title} [{category}]")
     else:
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+            "Referer": "https://www.khan.co.kr/",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         }
         try:
             response = requests.get(link, headers=headers, timeout=10)
@@ -340,7 +327,6 @@ def crawl_hani_news(entry, existing_data, category):
                 img_src = img_div.find("img")["src"] if img_div and img_div.find("img") else None
             else:
                 img_src = None  # 비디오 있을 땐 이미지 무시
-            # img_src = None
             
             div = soup.find("div", class_="article-text")
             paragraphs = div.find_all("p")[:-1] if div else []
@@ -348,9 +334,6 @@ def crawl_hani_news(entry, existing_data, category):
             
             div = soup.find("div", class_="ArticleDetailView_articleDetail__IT2fh")
             time = div.find("li", class_="ArticleDetailView_dateListItem__mRc3d").find("span").get_text()
-            
-            print(time)
-            
             
             article_data = {
                 "categories": category,
@@ -361,7 +344,6 @@ def crawl_hani_news(entry, existing_data, category):
                 "img_src": img_src,
                 "text": text or "본문 없음",
             }
-            # new_data.append(article_data)
             existing_data[link] = article_data
             
             print(f"저장 완료: {entry.title} [{category}]")
