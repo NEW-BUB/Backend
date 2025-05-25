@@ -97,22 +97,23 @@ def crawl_news(key):
             existing_data = {row["link"]: row for row in reader}
     except FileNotFoundError:
         existing_data = {}
-
+    
     for url, category in categories.items():
         print(f"[{category}] 크롤링 시작")
         feed = feedparser.parse(rss_url + url)
-        for entry in feed.entries:
-            if key == "연합뉴스":
-                crawl_yonhap_news(entry, existing_data, category)
-            elif key == "경향신문":
-                crawl_kyunghyang_news(entry, existing_data, category)
-            elif key == "조선일보":
-                crawl_chosun_news(entry, existing_data, category)
-            elif key == "동아일보":
-                crawl_donga_news(entry, existing_data, category)
-            elif key == "한겨레":
-                crawl_hani_news(entry, existing_data, category)
-
+        if key == "조선일보":
+            crawl_chosun_news(feed.entries, existing_data, category)
+        else:
+            for entry in feed.entries:
+                if key == "연합뉴스":
+                    crawl_yonhap_news(entry, existing_data, category)
+                elif key == "경향신문":
+                    crawl_kyunghyang_news(entry, existing_data, category)
+                elif key == "동아일보":
+                    crawl_donga_news(entry, existing_data, category)
+                elif key == "한겨레":
+                    crawl_hani_news(entry, existing_data, category)
+    
     # 모든 데이터를 저장
     with open(csv_file, mode="w", encoding="utf-8", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -205,46 +206,84 @@ def crawl_kyunghyang_news(entry, existing_data, category):
         except Exception as e:
             print(f"크롤링 실패: {link} ({e})")
 
-def crawl_chosun_news(entry, existing_data, category):
-    link = entry.link
-    if link in existing_data:
-        current_categories = existing_data[link]["categories"].split(", ")
-        if category not in current_categories:
-            current_categories.append(category)
-            existing_data[link]["categories"] = ", ".join(current_categories)
-        print(f"업데이트 완료: {entry.title} [{category}]")
-    else:
-        try:
-            response = requests.get(link, timeout=10)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, "html.parser")
-            
-            if hasattr(entry, "media_content"):
-                for media in entry.media_content:
-                    if media.get("type", "").startswith("image/"):
-                        img_src = media.get("url")
-                        break
+from playwright.sync_api import sync_playwright
+# pip install playwright
+# playwright install
+
+def crawl_chosun_news(entries, existing_data, category):
+    with sync_playwright() as p:  # Playwright 컨텍스트 열기
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+
+        # 2. 리소스 차단 함수 등록 (이미지, CSS, 폰트 차단)
+        def block_resources(route):
+            if route.request.resource_type in ["image", "stylesheet", "font"]:
+                route.abort()
             else:
-                img_src = None
-            
-            div = soup.find("section", class_="article-body")
-            paragraphs = div.find_all("p")[:] if div else []
-            text = " ".join(p.get_text(strip=True) for p in paragraphs)
-            
-            article_data = {
-                "categories": category,
-                "title": entry.title,
-                "link": link,
-                "description": entry.description,
-                "pubDate": entry.updated,
-                "img_src": img_src,
-                "text": text or "본문 없음",
-            }
-            existing_data[link] = article_data
-            
-            print(f"저장 완료: {entry.title} [{category}]")
+                route.continue_()
+        page.route("**/*", block_resources)
+    
+        try:
+            for entry in entries:
+                link = entry.link
+                if link in existing_data:
+                    current_categories = existing_data[link]["categories"].split(", ")
+                    current_text = existing_data[link]["text"]
+                    if category not in current_categories:
+                        current_categories.append(category)
+                        existing_data[link]["categories"] = ", ".join(current_categories)
+                    elif current_text == "본문 없음":
+                        page = browser.new_page()  # 새 브라우저 페이지 생성
+                        page.goto(link, timeout=30000)  # 60초 타임아웃으로 페이지 열기
+                        page.wait_for_selector("section.article-body", timeout=15000)  # 본문 로딩 기다림
+                        
+                        # 본문 선택
+                        content_elements = page.query_selector_all("section.article-body p")
+                        text = " ".join(element.inner_text().strip() for element in content_elements)
+                        print(text)
+                        
+                        existing_data[link]["text"] = text
+                    print(f"업데이트 완료: {entry.title} [{category}]")
+                else:
+                    response = requests.get(link, timeout=10)
+                    response.raise_for_status()
+                    soup = BeautifulSoup(response.text, "html.parser")
+                    
+                    if hasattr(entry, "media_content"):
+                        for media in entry.media_content:
+                            if media.get("type", "").startswith("image/"):
+                                img_src = media.get("url")
+                                break
+                    else:
+                        img_src = None
+                        
+                    page = browser.new_page()  # 새 브라우저 페이지 생성
+                    page.goto(link, timeout=30000)  # 60초 타임아웃으로 페이지 열기
+                    page.wait_for_selector("section.article-body", timeout=15000)  # 본문 로딩 기다림
+                    
+                    # 본문 선택
+                    content_elements = page.query_selector_all("section.article-body p")
+                    text = " ".join(element.inner_text().strip() for element in content_elements)
+                    print(text)
+                    
+                    existing_data[link]["text"] = text
+                    
+                    article_data = {
+                        "categories": category,
+                        "title": entry.title,
+                        "link": link,
+                        "description": entry.description,
+                        "pubDate": entry.updated,
+                        "img_src": img_src,
+                        "text": text or "본문 없음",
+                    }
+                    existing_data[link] = article_data
+                    
+                    print(f"저장 완료: {entry.title} [{category}]")
         except Exception as e:
             print(f"크롤링 실패: {link} ({e})")
+        finally:
+            browser.close()
 
 def crawl_donga_news(entry, existing_data, category):
     link = entry.link
@@ -352,8 +391,8 @@ def crawl_hani_news(entry, existing_data, category):
     
 
 if __name__ == "__main__":
-    # crawl_news("연합뉴스")
-    # crawl_news("경향신문")
-    # crawl_news("조선일보")
-    # crawl_news("동아일보")
+    crawl_news("연합뉴스")
+    crawl_news("경향신문")
+    crawl_news("조선일보")
+    crawl_news("동아일보")
     crawl_news("한겨레")
