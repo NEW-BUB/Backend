@@ -6,7 +6,7 @@ class Keyword(Base):
     __tablename__ = "keywords"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String(255))
 
     news = relationship("KeywordNews", back_populates="keyword")
     law = relationship("KeywordLaw", back_populates="keyword")

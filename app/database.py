@@ -1,22 +1,37 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
-
-# Python 기본 패키지에 포함 되어있는 sqlite 사용
-SQLALCHEMY_DATABASE_URL = "sqlite:///./fastapi-scrap.db"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from app.core.config import settings
+from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-# DB 세션 객체 함수
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+USER = settings.USER
+PASSWORD = settings.PASSWORD
+HOST = settings.HOST
+PORT = settings.PORT
+DBNAME = settings.DBNAME
+
+print(USER)
+
+DB_URL = 'mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}'.format(
+    USER=USER,
+    PASSWORD=PASSWORD,
+    HOST=HOST,
+    PORT=PORT,
+    DBNAME=DBNAME
+)
+print("----------------------------------------"+DB_URL)
+
+class engineconn:
+
+    def __init__(self):
+        self.engine = create_engine(DB_URL, pool_recycle = 500)
+
+    def sessionmaker(self):
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+        return session
+
+    def connection(self):
+        conn = self.engine.connect()
+        return conn

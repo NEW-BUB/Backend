@@ -6,7 +6,7 @@ class Category(Base):
     __tablename__ = 'category'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String(255))
 
     keyword = relationship('CategoryKeyword', back_populates='category')
     news = relationship('CategoryNews', back_populates='category')

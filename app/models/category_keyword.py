@@ -7,7 +7,7 @@ class CategoryKeyword(Base):
 
     id = Column(Integer, primary_key=True)
     category_id = Column(Integer, ForeignKey('category.id'))
-    keyword_id = Column(Integer, ForeignKey('keyword.id'))
+    keyword_id = Column(Integer, ForeignKey('keywords.id'))
 
     category = relationship('Category', back_populates='keyword')
     keyword = relationship('Keyword', back_populates='category')
