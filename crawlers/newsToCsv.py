@@ -3,6 +3,10 @@ import feedparser
 import requests
 from bs4 import BeautifulSoup, NavigableString
 import csv
+import traceback
+from playwright.sync_api import sync_playwright
+# pip install playwright
+# playwright install
 
 # 연합뉴스 RSS 카테고리 및 URL 정보
 news_source = {
@@ -122,7 +126,6 @@ def crawl_news(key):
 
     print("모든 카테고리 크롤링 완료!")
 
-
 def crawl_yonhap_news(entry, existing_data, category):
     link = entry.link
     if link in existing_data:
@@ -205,11 +208,6 @@ def crawl_kyunghyang_news(entry, existing_data, category):
             print(f"저장 완료: {entry.title} [{category}]")
         except Exception as e:
             print(f"크롤링 실패: {link} ({e})")
-
-from playwright.sync_api import sync_playwright
-# pip install playwright
-# playwright install
-import traceback
 
 def crawl_chosun_news(entries, existing_data, category):
     with sync_playwright() as p:  # Playwright 컨텍스트 열기
