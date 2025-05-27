@@ -209,6 +209,7 @@ def crawl_kyunghyang_news(entry, existing_data, category):
 from playwright.sync_api import sync_playwright
 # pip install playwright
 # playwright install
+import traceback
 
 def crawl_chosun_news(entries, existing_data, category):
     with sync_playwright() as p:  # Playwright 컨텍스트 열기
@@ -247,7 +248,6 @@ def crawl_chosun_news(entries, existing_data, category):
                 else:
                     response = requests.get(link, timeout=10)
                     response.raise_for_status()
-                    soup = BeautifulSoup(response.text, "html.parser")
                     
                     if hasattr(entry, "media_content"):
                         for media in entry.media_content:
@@ -266,8 +266,6 @@ def crawl_chosun_news(entries, existing_data, category):
                     text = " ".join(element.inner_text().strip() for element in content_elements)
                     print(text)
                     
-                    existing_data[link]["text"] = text
-                    
                     article_data = {
                         "categories": category,
                         "title": entry.title,
@@ -282,6 +280,8 @@ def crawl_chosun_news(entries, existing_data, category):
                     print(f"저장 완료: {entry.title} [{category}]")
         except Exception as e:
             print(f"크롤링 실패: {link} ({e})")
+            traceback_message = traceback.format_exc()
+            print(traceback_message)
         finally:
             browser.close()
 
