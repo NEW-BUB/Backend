@@ -1,4 +1,3 @@
-import time
 import re
 import google.generativeai as genai
 
@@ -52,21 +51,3 @@ def extract_keywords(sentence: str) -> list:
         import traceback
         print(traceback.format_exc())
         return []
-
-
-# 테스트 예시
-if __name__ == "__main__":
-    from .billList import *
-    bill_nums, bill_contents = fetch_bill_nums()
-
-    # 의안 키워드 추출
-    from crawlers import keyword
-
-    for i in range(201, 203):
-        text = bill_contents[i]
-        print(text)
-
-        keywords = extract_keywords(text)
-        print(keywords)
-
-        time.sleep(30)

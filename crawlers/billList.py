@@ -2,6 +2,7 @@ from msilib.schema import Billboard
 
 import os
 import csv
+import time
 import requests
 import xml.etree.ElementTree as ET
 
@@ -48,8 +49,8 @@ def fetch_bill(page):
 
     try:
         with open('bill_data.csv', 'a', encoding='utf-8') as csvfile:
-            header = [ 'name', 'number', 'proponent', 'date', 'processing_status', 'processing_result', 'contents', 'link' ]
 
+            header = [ 'number', 'name', 'proponent', 'date', 'link', 'processing_status', 'processing_result', 'contents', 'keywords' ]
             csv_writer = csv.writer(csvfile)
             if os.stat('bill_data.csv').st_size > 0:
                 pass
@@ -66,9 +67,8 @@ def fetch_bill(page):
 
                 number = item.findtext("billNo", default="")
 
-                for i in csv_number:
-                    if  i == number:
-                        continue
+                if number in csv_number:
+                    continue
 
                 bill_info.append(number)
 
@@ -86,7 +86,7 @@ def fetch_bill(page):
                 csv_writer.writerow(bill_info)
 
                 if keywords is not []:
-                    time.sleep(4)
+                    time.sleep(4.1)
 
 
                 # page += 1
@@ -165,5 +165,36 @@ def fetch_bill_xml(bill_num, bill_info):
 
 # 실행
 if __name__ == "__main__":
-    # 인수로 1~38 페이지 수 넘겨줘야 됨.
-    fetch_bill()
+    # 인수로 페이지 수(1~38)  넘겨줘야 됨.
+    fetch_bill(2)
+
+    # # 페이지당 의안번호 확인
+    # url = "http://apis.data.go.kr/9710000/BillInfoService2/getBillInfoList"
+    # page = 2
+    # per_page = 500  # 최대 19000까지 가능
+    # total_pages = None
+    #
+    # # while True:
+    # params = {
+    #     "serviceKey": BILL_INFO_API_KEY,
+    #     "numOfRows": per_page,
+    #     "pageNo": page
+    # }
+    #
+    # response = requests.get(url, params=params)
+    # response.encoding = "utf-8"
+    #
+    # root = ET.fromstring(response.text)
+    #
+    # total_count = int(root.findtext("body/totalCount"))
+    # total_pages = (total_count + per_page - 1) // per_page
+    # print(f"전체 건수: {total_count}, 총 페이지 수: {total_pages}")
+    #
+    # # item 반복
+    # items = root.findall(".//item")
+    #
+    # bill_numbers = []
+    # for item in items:
+    #     bill_numbers.append(item.findtext("billNo", default=""))
+    #
+    # print(bill_numbers)
