@@ -222,28 +222,18 @@ def crawl_chosun_news(entries, existing_data, category):
                 route.continue_()
         page.route("**/*", block_resources)
     
-        try:
-            for entry in entries:
-                link = entry.link
-                if link in existing_data:
-                    current_categories = existing_data[link]["categories"].split(", ")
-                    current_text = existing_data[link]["text"]
-                    if category not in current_categories:
-                        current_categories.append(category)
-                        existing_data[link]["categories"] = ", ".join(current_categories)
-                    elif current_text == "본문 없음":
-                        page = browser.new_page()  # 새 브라우저 페이지 생성
-                        page.goto(link, timeout=30000)  # 60초 타임아웃으로 페이지 열기
-                        page.wait_for_selector("section.article-body", timeout=15000)  # 본문 로딩 기다림
-                        
-                        # 본문 선택
-                        content_elements = page.query_selector_all("section.article-body p")
-                        text = " ".join(element.inner_text().strip() for element in content_elements)
-                        print(text)
-                        
-                        existing_data[link]["text"] = text
-                    print(f"업데이트 완료: {entry.title} [{category}]")
-                else:
+        
+        for entry in entries:
+            link = entry.link
+            if link in existing_data:
+                current_categories = existing_data[link]["categories"].split(", ")
+                current_text = existing_data[link]["text"]
+                if category not in current_categories:
+                    current_categories.append(category)
+                    existing_data[link]["categories"] = ", ".join(current_categories)
+                print(f"업데이트 완료: {entry.title} [{category}]")
+            else:
+                try:
                     response = requests.get(link, timeout=10)
                     response.raise_for_status()
                     
@@ -256,13 +246,17 @@ def crawl_chosun_news(entries, existing_data, category):
                         img_src = None
                         
                     page = browser.new_page()  # 새 브라우저 페이지 생성
-                    page.goto(link, timeout=30000)  # 60초 타임아웃으로 페이지 열기
-                    page.wait_for_selector("section.article-body", timeout=15000)  # 본문 로딩 기다림
+                    page.goto(link, timeout=60000)  # 60초 타임아웃으로 페이지 열기
+                    page.wait_for_selector("section.article-body", timeout=30000)  # 본문 로딩 기다림
                     
                     # 본문 선택
                     content_elements = page.query_selector_all("section.article-body p")
                     text = " ".join(element.inner_text().strip() for element in content_elements)
                     print(text)
+                    
+                    if(not text):
+                        print(entry.title+" 본문 없음")
+                        continue
                     
                     article_data = {
                         "categories": category,
@@ -271,17 +265,16 @@ def crawl_chosun_news(entries, existing_data, category):
                         "description": entry.description,
                         "pubDate": entry.updated,
                         "img_src": img_src,
-                        "text": text or "본문 없음",
+                        "text": text,
                     }
                     existing_data[link] = article_data
-                    
-                    print(f"저장 완료: {entry.title} [{category}]")
-        except Exception as e:
-            print(f"크롤링 실패: {link} ({e})")
-            traceback_message = traceback.format_exc()
-            print(traceback_message)
-        finally:
-            browser.close()
+                except Exception as e:
+                    print(f"크롤링 실패: {link} ({e})")
+                    traceback_message = traceback.format_exc()
+                    print(traceback_message)
+                
+                print(f"저장 완료: {entry.title} [{category}]")
+        browser.close()
 
 def crawl_donga_news(entry, existing_data, category):
     link = entry.link
