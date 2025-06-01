@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 import os
-from app.core.config import settings
+import ast
 
 # CSV에서 키워드 로드
 def load_keywords_from_csv(file_list, json_data=[]):
