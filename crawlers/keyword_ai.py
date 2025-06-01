@@ -25,8 +25,6 @@ def extract_keywords(sentence: str) -> list:
     출력 형식은 파이썬 리스트 형태로 주세요. 예: ['키워드1', '키워드2', '키워드3']
     """
 
-    response = model.generate_content(prompt)
-
     # 결과에서 리스트 추출 (단순 문자열 파싱)
     # 예: ['청년', '주거 지원', '정책'] 형태의 문자열로 응답이 옴
     try:

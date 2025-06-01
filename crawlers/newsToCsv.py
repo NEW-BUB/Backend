@@ -9,16 +9,6 @@ from playwright.async_api import async_playwright
 import ast
 import re
 
-# import csv
-# import ast
-# import traceback
-# import feedparser
-# from bs4 import BeautifulSoup
-# from playwright.async_api import async_playwright
-
-# pip install playwright
-# playwright install
-
 # 연합뉴스 RSS 카테고리 및 URL 정보
 news_source = {
     "연합뉴스": {
@@ -107,8 +97,6 @@ news_source = {
         "csv_file": "jtbc 데이터.csv",
     }
 }
-
-fieldnames = ["categories", "keywords", "title", "link", "author", "pubDate", "img_src", "text"]
         
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
@@ -138,7 +126,7 @@ async def crawl_news(key, existing_data):
             print(f"\n[{category}] 카테고리 시작")
             feed = feedparser.parse(rss_url + url)
 
-            if key in ["조선일보", "jtbc"]:
+            if key in ["jtbc"]:
                 async with async_playwright() as p:
                     browser = await p.chromium.launch(headless=True)
 
@@ -215,9 +203,7 @@ def crawl_static_news(key, entry, link):
 
 
 async def crawl_playwright_news(key, entry, link, browser):
-    if key == "조선일보":
-        return await crawl_chosun_news(entry, link, browser)
-    elif key == "jtbc":
+    if key == "jtbc":
         return await crawl_jtbc_news(entry, link, browser)
     return {}
 
@@ -231,7 +217,7 @@ def crawl_yonhap_news(entry, link):
     paragraphs = div.find_all("p")[:-1] if div else []
     text = "\\n".join(p.get_text(strip=True) for p in paragraphs)
     
-    if not text:
+    if not text or text == "[]" or text == "\n\n" or text == "\n":
         print(link + " 본문 없음")
         return None
     
@@ -270,9 +256,9 @@ def crawl_kyunghyang_news(entry, link):
     paragraphs = div.find_all("p") if div else []
     text = "\\n".join(p.get_text(strip=True) for p in paragraphs)
     
-    if not text:
+    if not text or text == "[]" or text == "\n\n" or text == "\n":
         print(link + " 본문 없음")
-        return
+        return None
     
     div = soup.find("div", class_="art_photo")
     img_src = div.find("img")["src"] if div and div.find("img") else None
@@ -311,7 +297,7 @@ def crawl_donga_news(entry, link):
     article_div = soup.find('section', class_='news_view')
     if not article_div:
         print(link + " 본문 없음")
-        return
+        return None
 
     texts = []
     for element in article_div.descendants:
@@ -325,9 +311,9 @@ def crawl_donga_news(entry, link):
     text = '\\n'.join(texts)
     text = text.replace("BYLINE", "").replace("//BYLINE", "").replace("//", "").strip()
     
-    if not text:
+    if not text or text == "[]" or text == "\n\n" or text == "\n":
         print(link + " 본문 없음")
-        return
+        return None
     
     byline_div = soup.find("div", class_="byline")
     if byline_div:
@@ -355,7 +341,7 @@ def crawl_hani_news(entry, link):
     paragraphs = div.find_all("p")[:] if div else []
     text = "\\n".join(p.get_text(strip=True) for p in paragraphs)
 
-    if not text:
+    if not text or text == "[]" or text == "\n\n" or text == "\n":
         print(link + " 본문 없음")
         return None
     
@@ -385,54 +371,6 @@ def crawl_hani_news(entry, link):
         "author": author,
     }
     return article_data
-
-async def crawl_chosun_news(entry, link, browser):
-    response = requests.get(link, timeout=10)
-    response.raise_for_status()
-    
-    if hasattr(entry, "media_content"):
-        for media in entry.media_content:
-            if media.get("type", "").startswith("image/"):
-                img_src = media.get("url")
-                break
-    else:
-        img_src = None
-
-    page = await browser.new_page()
-    try:
-        await page.goto(link, timeout=40000)
-        await page.wait_for_selector("section.article-body", timeout=15000)
-        html = await page.content()
-
-        soup = BeautifulSoup(html, "html.parser")
-        content_div = soup.select_one("section.article-body")
-
-        texts = [el.get_text(strip=True) for el in content_div.find_all("p")]
-        text = "\\n".join(dict.fromkeys(texts))
-
-        if not text:
-            print(link + " 본문 없음")
-            return None
-        
-        byline_div = soup.select_one("div.article-byline__container")
-        if byline_div:
-            a_tags = byline_div.find_all("a")
-            author = [a.get_text(strip=True) for a in a_tags]
-        else:
-            print("작성자 없음")
-            author = []
-        
-        article_data = {
-            "title": entry.title,
-            "link": link,
-            "pubDate": entry.updated,
-            "img_src": img_src,
-            "text": text,
-            "author": author,
-        }
-        return article_data
-    finally:
-        await page.close()
 
 async def crawl_jtbc_news(entry, link, browser):
     response = requests.get(link, headers=headers, timeout=10)
@@ -470,9 +408,8 @@ async def crawl_jtbc_news(entry, link, browser):
 
         texts = [el.get_text(strip=True) for el in content_div.find_all(["span", "strong"])]
         text = "\\n".join(dict.fromkeys(texts))
-        # print(text)
 
-        if not text:
+        if not text or text == "[]" or text == "\n\n" or text == "\n":
             print(link + " 본문 없음")
             return None
         
