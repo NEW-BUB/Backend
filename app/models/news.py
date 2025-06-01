@@ -9,7 +9,7 @@ class News(Base):
     title = Column(String(255))
     date = Column(Date)
     img = Column(String(500))
-    author = Column(String(10))
+    author = Column(String(50))
     text = Column(Text)
     link = Column(String(255))
 
