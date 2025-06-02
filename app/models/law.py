@@ -12,7 +12,7 @@ class Law(Base):
     date = Column(Date)
     processing_status = Column(Integer)
     processing_result = Column(String(15))
-    contents = Column(Text)
+    summary = Column(Text)
     link = Column(String(255))
 
 

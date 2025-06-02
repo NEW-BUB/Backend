@@ -8,6 +8,7 @@ class LawPartyContribution(Base):
     id = Column(Integer, primary_key=True)
     law_id = Column(Integer, ForeignKey("laws.id"))
     party_id = Column(Integer, ForeignKey("parties.id"))
+    count = Column(Integer)
 
     law = relationship("Law", back_populates="party_contribution")
     party = relationship("Party", back_populates="law_contribution")

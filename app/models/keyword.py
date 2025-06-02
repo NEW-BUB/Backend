@@ -7,6 +7,7 @@ class Keyword(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(15))
+    count = Column(Integer)
 
     news = relationship("KeywordNews", back_populates="keyword")
     law = relationship("KeywordLaw", back_populates="keyword")
