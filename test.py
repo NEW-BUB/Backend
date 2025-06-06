@@ -159,12 +159,12 @@ def news_list(page: int = 1, limit: int = 30, q: str = '', category: str = '정�
 def filtered_news(offset: int, overflow_limit: int, search: str, category: str):
     all_news = [
         {"news_id": i, "title": f"뉴스 {i}", "img": "https://img.khan.co.kr/news/2025/05/22/l_2025052301000641500065161.jpg",
-         "news_dt": "2025-06-05", "keywords": [f'키워드{i}', f'키워드{i+1}'],"category": "정치" if i % 2 == 0 else "경제"}
+         "news_dt": "2025-06-05", "keywords": [f'키워드{i}', f'키워드{i+1}'],"category": ["정치"] if i % 3 == 0 else ["정치", "경제"]}
         for i in range(1, 20)  # 100개의 샘플 데이터
     ]
 
     if category:
-        all_news = [news for news in all_news if news["category"] == category]
+        all_news = [news for news in all_news if category in news["category"]]
 
     if search != "" and search.strip():
         search_lower = search.lower()
@@ -179,7 +179,6 @@ def filtered_news(offset: int, overflow_limit: int, search: str, category: str):
 
 @app.get("/news/{news_id}")
 def news_detail(news_id: int):
-    news_id = 1
     news = {
         "news_id": news_id,
         "title": "뉴스1",
@@ -193,7 +192,8 @@ def news_detail(news_id: int):
                 "law_id": 2,
                 "law_nm": "법안2"
             }
-        ]
+        ],
+        "category": ["정치", "경제", "문화"]
     }
     return news
 
