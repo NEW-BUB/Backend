@@ -49,9 +49,9 @@ for csv_file in csv_files:
             
             keywords = [kw.replace(" ", "") for kw in keywords]
             
-            keywords = [normalize_keyword(kw) for kw in keywords]
+            # keywords = [normalize_keyword(kw) for kw in keywords]
             
-            keywords = flatten_keywords(keywords)
+            # keywords = flatten_keywords(keywords)
             
             existing_data[link]["keywords"] = list(set(keywords))
     except Exception as e:
