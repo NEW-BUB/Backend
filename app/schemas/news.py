@@ -12,13 +12,14 @@ class NewsCreate(NewsBase):
     new_link: str
     texts: str
     keywords: List[str] = []
-    category: str
+    category: List[str]
 
 class NewsListItem(NewsBase):
     news_id: int
 
 class NewsResponse(NewsBase):
     news_id: int
+    category: List[str]
     author: str
     new_link: HttpUrl
     texts: str
