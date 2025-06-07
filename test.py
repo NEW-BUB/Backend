@@ -239,7 +239,7 @@ def news_detail(news_id: int):
         "title": "뉴스1",
         "date": "2025-05-22 05:22",
         "img": "뉴스이미지1",
-        "author": "저자1",
+        "author": ["저자1", "저자2"],
         "link": "뉴스링크1",
         "text": "뉴스내용",
         "keywords": ["키워드1", "키워드2", "키워드3"],
