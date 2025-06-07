@@ -2,8 +2,8 @@ from pydantic import BaseModel
 from typing import List
 
 class KeywordBase(BaseModel):
-    keyword_nm: str
+    name: str
 
 class KeywordList(BaseModel):
-    keywords: List[KeywordBase]
+    keywords: List[str]
     has_more: bool

@@ -1,30 +1,31 @@
-from pydantic import BaseModel, HttpUrl, Any
+from pydantic import BaseModel, Any
 from typing import List, Dict, Optional
 from datetime import datetime
 
 class NewsBase(BaseModel):
     title: str
-    img: Optional[HttpUrl] = None
-    news_dt: datetime
+    img: Optional[str] = None
+    date: datetime
 
 class NewsCreate(NewsBase):
     author: str
-    new_link: str
-    texts: str
+    link: str
+    text: str
     keywords: List[str] = []
-    category: List[str]
+    categories: List[str]
 
 class NewsListItem(NewsBase):
-    news_id: int
+    id: int
 
 class NewsResponse(NewsBase):
-    news_id: int
-    category: List[str]
+    id: int
     author: str
-    new_link: HttpUrl
-    texts: str
-    keywords_nm: List[str] = []
+    link: str
+    text: str
+    keywords: List[str] = []
     related_laws: List[Dict[str, Any]] = []
+    categories: List[str] = []
+    related_news: List[NewsListItem] = []
 
 class NewsList(BaseModel):
     news: List[NewsListItem]
