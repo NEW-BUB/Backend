@@ -16,16 +16,21 @@ class PartyKeywordContribution(PartyBase):
     id: int
     rate: float
 
-class PartyDetailItem(KeywordBase):
+class PartyDetailItem(BaseModel):
+    keyword: str
     top5_party: List[PartyKeywordContribution]
 
 class PartyDetail(BaseModel):
     issues: List[PartyDetailItem]
 
-class KeywordContribution(KeywordBase):
+class KeywordContribution(PartyDetail):
+    has_more: bool
+
+class ContributionItem(BaseModel):
+    keyword: str
     count: int
 
 class PartyContribution(PartyBase):
     img: str
-    contribution: List[KeywordContribution]
+    contribution: List[ContributionItem]
     max_count: int

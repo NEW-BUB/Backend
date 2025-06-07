@@ -65,7 +65,7 @@ def filtered_laws(offset: int, overflow_limit: int, search: str):
         search_lower = search.lower()
         all_laws = [
             law for law in all_laws
-            if search_lower in law["law_nm"].lower() or
+            if search_lower in law["name"].lower() or
                any(search_lower in keyword.lower() for keyword in law["keywords"])
         ]
 
@@ -155,8 +155,8 @@ def news_list(page: int = 1, limit: int = 30, q: str = '', category: str = '정�
 
 def filtered_news(offset: int, overflow_limit: int, search: str, category: str):
     all_news = [
-        {"news_id": i, "title": f"뉴스 {i}", "img": "https://img.khan.co.kr/news/2025/05/22/l_2025052301000641500065161.jpg",
-         "news_dt": "2025-06-05", "keywords": [f'키워드{i}', f'키워드{i+1}'],"category": ["정치"] if i % 3 == 0 else ["정치", "경제"]}
+        {"id": i, "title": f"뉴스 {i}", "img": "https://img.khan.co.kr/news/2025/05/22/l_2025052301000641500065161.jpg",
+         "date": "2025-06-05", "keywords": [f'키워드{i}', f'키워드{i+1}'],"category": ["정치"] if i % 3 == 0 else ["정치", "경제"]}
         for i in range(1, 20)  # 100개의 샘플 데이터
     ]
 
@@ -177,20 +177,40 @@ def filtered_news(offset: int, overflow_limit: int, search: str, category: str):
 @app.get("/news/{news_id}")
 def news_detail(news_id: int):
     news = {
-        "news_id": news_id,
+        "id": news_id,
         "title": "뉴스1",
-        "news_dt": "2025-05-22 05:22",
+        "date": "2025-05-22 05:22",
         "related_laws": [
             {
-                "law_id": 1,
-                "law_nm": "법안1"
+                "id": 1,
+                "name": "법안1"
             },
             {
-                "law_id": 2,
-                "law_nm": "법안2"
+                "id": 2,
+                "name": "법안2"
             }
         ],
-        "category": ["정치", "경제", "문화"]
+        "categories": ["정치", "경제", "문화"],
+        "related_news": [
+            {
+                "id": {news_id+1},
+                "title": f'뉴스{news_id+1}',
+                "img": f'뉴스이미지{news_id+1}',
+                "date": "2025-05-22 05:22"
+            },
+            {
+                "id": {news_id+2},
+                "title": f'뉴스{news_id+2}',
+                "img": f'뉴스이미지{news_id+2}',
+                "date": "2025-05-22 05:22"
+            },
+            {
+                "id": {news_id+3},
+                "title": f'뉴스{news_id+3}',
+                "img": f'뉴스이미지{news_id+3}',
+                "date": "2025-05-22 05:22"
+            }
+        ]
     }
     return news
 
@@ -199,8 +219,8 @@ def party():
     issue_list = {
         "issues": [
             {
-                "keyword_nm": f"키워드{i}",
-                "parties": [
+                "keyword": f"키워드{i}",
+                "top5_party": [
                     {"id": i, "name": f'정당{i}', "rate": 6 - i}
                     for i in range(1, 6)
                 ]
@@ -212,7 +232,7 @@ def party():
 
     parties_list = {
         "parties": [
-            {"party_id": i, "party_nm": f'정당{i}', "img": f'img{i}.jpg'}
+            {"id": i, "name": f'정당{i}', "img": f'img{i}.jpg'}
             for i in range(1, 9)
         ]
     }
@@ -228,11 +248,11 @@ def party_detail(page: int = 1):
     all_keyword_contribution = {
         "issues": [
             {
-                "keyword_nm": f'키워드{i}',
+                "keyword": f'키워드{i}',
                 "top5_party": [
                     {
-                        "party_id": j,
-                        "party_nm": f'정당{j}',
+                        "id": j,
+                        "name": f'정당{j}',
                         "rate": 10 + 5 * (j - 1)
                     } for j in range(1, 6)
                 ]
@@ -248,7 +268,7 @@ def party_detail(page: int = 1):
 
     contribution = {
         "has_more": has_more,
-        "data": page_data
+        "issues": page_data
     }
 
     return contribution
@@ -256,16 +276,16 @@ def party_detail(page: int = 1):
 @app.get("/party/{party_id}")
 def party_contribution(party_id: int):
     party_data = {
-        "party_nm": f'정당{party_id}',
+        "name": f'정당{party_id}',
         "img": f'img{party_id}.jpg',
         "contribution": [
             {
-                "keyword_nm": f'키워드{i}',
+                "keyword": f'키워드{i}',
                 "count": i
             }
             for i in range(1, 30)
         ],
-        "max_count": 50
+        "max_count": 29
     }
     return party_data
 
