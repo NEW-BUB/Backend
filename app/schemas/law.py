@@ -1,28 +1,31 @@
-from pydantic import BaseModel, HttpUrl
-from typing import List
+from pydantic import BaseModel
+from typing import List, Dict, Any
 from datetime import datetime
 
+from app.schemas.party import PartyList
+
+
 class LawBase(BaseModel):
-    law_nm: str
+    name: str
     processing_status: int
 
 class LawCreate(LawBase):
     pass
 
 class LawListItem(LawBase):
-    law_id: int
-
-class LawResponse(LawBase):
-    law_id: int
-    law_no:int
-    proponent: str
-    law_dt: datetime
-    processing_result: str
-    summary: str
-    keywords_nm: List[str] = []
-    parties_id: List[int] = []
-    law_link: HttpUrl
+    id: int
 
 class LawList(BaseModel):
     laws: List[LawListItem]
     has_more: bool
+
+class LawResponse(LawBase):
+    id: int
+    number:int
+    proponent: str
+    date: datetime
+    processing_result: str
+    summary: str
+    keywords: List[str] = []
+    parties: List[Dict[str, Any]] = []
+    link: str

@@ -1,19 +1,19 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 from typing import List
 from .keyword import *
 
 class PartyBase(BaseModel):
-    party_nm: str
+    name: str
 
 class PartyListItem(PartyBase):
-    party_id: int
-    img: HttpUrl
+    id: int
+    img: str
 
 class PartyList(BaseModel):
     parties: List[PartyListItem]
 
 class PartyKeywordContribution(PartyBase):
-    party_id: int
+    id: int
     rate: float
 
 class PartyDetailItem(KeywordBase):
@@ -24,8 +24,8 @@ class PartyDetail(BaseModel):
 
 class KeywordContribution(KeywordBase):
     count: int
-    max_count: int
 
 class PartyContribution(PartyBase):
-    img: HttpUrl
+    img: str
     contribution: List[KeywordContribution]
+    max_count: int
