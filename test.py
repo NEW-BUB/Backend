@@ -30,10 +30,6 @@ app.add_middleware(
 def main():
     return ""
 
-@app.get("/hello")
-def hello():
-    return {"message": "hello world"}
-
 @app.get("/laws")
 def laws_list(page: int = 1, limit: int = 30, q: str = ""):
     overflow_limit = limit + 1
@@ -59,7 +55,7 @@ def laws_list(page: int = 1, limit: int = 30, q: str = ""):
 
 def filtered_laws(offset: int, overflow_limit: int, search: str):
     all_laws = [
-        {"law_id": i, "law_nm": f"법안{i}", "processing_status": i % 5 + 1,
+        {"id": i, "name": f"법안{i}", "processing_status": i % 5 + 1,
          "keywords": [f'키워드{i}', f'키워드{i+1}']}
         for i in range(1, 20)  # 100개의 샘플 데이터
     ]
@@ -68,9 +64,9 @@ def filtered_laws(offset: int, overflow_limit: int, search: str):
     if search != "" and search.strip():
         search_lower = search.lower()
         all_laws = [
-            news for news in all_laws
-            if search_lower in news["law_nm"].lower() or
-               any(search_lower in keyword.lower() for keyword in news["keywords"])
+            law for law in all_laws
+            if search_lower in law["law_nm"].lower() or
+               any(search_lower in keyword.lower() for keyword in law["keywords"])
         ]
 
     return all_laws[offset:offset + overflow_limit]
@@ -78,11 +74,11 @@ def filtered_laws(offset: int, overflow_limit: int, search: str):
 @app.get("/laws/{law_id}")
 def law(law_id: int):
     law = {
-        "law_id": law_id,
-        "law_nm": f"법안1{law_id}",
+        "id": law_id,
+        "name": f"법안1{law_id}",
         "keywords": ["키워드1", "키워드2", "키워드3"],
-        "law_dt": "2025-05-22",
-        "law_link": f"링크{law_id}",
+        "date": "2025-05-22",
+        "link": f"링크{law_id}",
         "processing_result": "원안가결"
     }
     return law
@@ -113,21 +109,22 @@ def issue_list(page: int = 1, limit: int = 30, q: str = "", category: str = '정
 
 def filtered_keywords(offset: int, overflow_limit: int, search: str, category: str):
     all_keywords = [
-        {"keyword_nm": f'키워드{i}', "category": f'정치' if i % 2 == 0 else f'경제'}
+        {"name": f'키워드{i}', "categories": ['정치'] if i % 2 == 0 else ['경제', '문화']}
         for i in range(1, 20)  # 100개의 샘플 데이터
     ]
 
     if category:
-        all_keywords = [keyword for keyword in all_keywords if keyword["category"] == category]
+        all_keywords = [keyword for keyword in all_keywords if category in keyword["categories"]]
 
     if search != "" and search.strip():
         search_lower = search.lower()
         all_keywords = [
             keywords for keywords in all_keywords
-            if search_lower in keywords["keyword_nm"].lower() or
-               any(search_lower in keywords.lower() for keywords in keywords["keyword_nm"])
+            if search_lower in keywords["name"].lower() or
+               any(search_lower in keywords.lower() for keywords in keywords["name"])
         ]
 
+    all_keywords = [keyword["name"] for keyword in all_keywords]
     return all_keywords[offset:offset + overflow_limit]
 
 @app.get("/issue/{keyword_name}")
@@ -264,11 +261,11 @@ def party_contribution(party_id: int):
         "contribution": [
             {
                 "keyword_nm": f'키워드{i}',
-                "count": i,
-                "max_count": 50
+                "count": i
             }
             for i in range(1, 30)
-        ]
+        ],
+        "max_count": 50
     }
     return party_data
 
