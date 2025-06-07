@@ -33,6 +33,22 @@ class LawService:
         ]
         return law_list_items
 
+    def get_complete_laws_list(self, limit: int, search: str = "") -> List[dict]:
+        query = self.db.query(Law)
+
+        if search and search.strip():
+            search_term = search.lower()
+            query = query.join(KeywordLaw).join(Keyword).filter(Keyword.name == search_term)
+
+        query = query.order_by(Law.date.desc()).limit(limit).all()
+        law_list_items = [
+            {
+                "id": law.id,
+                "name": law.name
+            }
+            for law in query
+        ]
+        return law_list_items
 
     def get_law_by_id(self, law_id: int) -> Optional[LawResponse]:
         query = self.db.query(Law).filter(Law.id == law_id).first()
