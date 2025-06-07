@@ -23,9 +23,7 @@ class NewsResponse(NewsBase):
     link: str
     text: str
     keywords: List[str] = []
-    related_laws: List[Dict[str, Any]] = []
     categories: List[str] = []
-    related_news: List[NewsListItem] = []
 
 class NewsList(BaseModel):
     news: List[NewsListItem]
