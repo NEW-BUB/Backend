@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Any
-from typing import List, Dict, Optional
+from pydantic import BaseModel
+from typing import List, Dict, Optional, Any
 from datetime import datetime
 
 class NewsBase(BaseModel):

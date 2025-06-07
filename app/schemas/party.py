@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List
-from .keyword import *
+from app.schemas.keyword import KeywordBase
 
 class PartyBase(BaseModel):
     name: str
