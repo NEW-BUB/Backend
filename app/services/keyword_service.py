@@ -21,6 +21,4 @@ class KeywordService:
             query = query.filter(Keyword.name.ilike(search_term))
 
         query = query.order_by(Keyword.count.desc()).offset(offset).limit(overflow_limit).all()
-        print(query)
         return [keyword.name for keyword in query]
-

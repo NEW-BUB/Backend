@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
+
+from app.models import party
 from app.models.party import Party
 from app.models.keyword import Keyword
 from app.models.keyword_party_contribution import KeywordPartyContribution
@@ -10,7 +12,15 @@ class PartyService:
         self.db = db
 
     def get_party_list(self):
-        return self.db.query(Party).filter(Party.eraco == 22).order_by(Party.seat.desc()).all()
+        parties = self.db.query(Party).filter(Party.eraco == 22).order_by(Party.seat.desc()).all()
+        return [
+            {
+                "id": party.id,
+                "name": party.name,
+                "img": party.img
+            }
+            for party in parties
+        ]
 
 
     def calculate_percentile(self, counts: List[int]) -> List[float]:
@@ -20,38 +30,43 @@ class PartyService:
         percentiles = [(count / total) * 100 for count in counts]
         return percentiles
 
-    def get_keyword_party_contributions(self, keyword_nm: str) -> List[dict]:
+    def get_keyword_party_contributions(self) -> List[dict]:
         subquery = (
                 self.db.query(Party, KeywordPartyContribution)
                 .join(KeywordPartyContribution)
                 .order_by(KeywordPartyContribution.count.desc())
                 .join(Keyword)
-                .filter(Keyword.name == keyword_nm)
+                .order_by(Keyword.count.desc())
                 .limit(5)
                 .all()
         )
 
         if not subquery:
-            return {"name": keyword_nm, "top5_party": []}
+            return [{"name": "", "top5_party": []}]
+            
+        result = []
 
-        counts = [contrib.count for party, contrib in subquery]
-        rates = self.calculate_percentile(counts)
+        for party, contrib in subquery:
+            counts = [contrib.count for party, contrib in subquery]
+            rates = self.calculate_percentile(counts)
 
-        top5_party = [
-            {
-                "id": party.id,
-                "name": party.name,
-                "rate": rates[i]
-            }
-            for i, (party,contribution) in enumerate(subquery)
-        ]
+            top5_party = [
+                {
+                    "id": party.id,
+                    "name": party.name,
+                    "rate": rates[i]
+                }
+                for i, (party,contribution) in enumerate(subquery)
+            ]
 
-        return  {"name": keyword_nm, "top5_party": top5_party}
+            result.append({"name": party.name, "top5_party": top5_party})
+
+        return result
 
     def get_party_by_id(self, party_id: int) -> Optional[Party]:
         return self.db.query(Party).filter(Party.id == party_id).first()
 
-    def get_party_keyword_contributions(self, party_id: int) -> dict:
+    def get_party_keyword_contributions(self, party_id: int, limit: int) -> dict:
         party = self.get_party_by_id(party_id)
         if not party:
             return {}
@@ -61,7 +76,7 @@ class PartyService:
             .join(Keyword, Keyword.id == KeywordPartyContribution.keyword_id)
             .filter(KeywordPartyContribution.party_id == party_id)
             .order_by(KeywordPartyContribution.count.desc())
-            .limit(14)
+            .limit(limit)
             .all()
         )
 

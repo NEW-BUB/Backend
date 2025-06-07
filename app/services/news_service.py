@@ -50,6 +50,34 @@ class NewsService:
         ]
         return news
 
+    def get_complete_news_list(self, limit: int = 30, search: str = "") -> List[dict]:
+        query = self.db.query(News)
+        if not query:
+            return None
+
+        if search and search.strip():
+            search_term = search.lower()
+            keyword_subquery = (
+                self.db.query(KeywordNews.news_id)
+                .join(Keyword)
+                .filter(Keyword.name==search_term)
+            )
+            query = query.filter(News.id.in_(keyword_subquery))
+
+        query = query.order_by(News.date.desc()).limit(limit)
+        query = query.all()
+
+        news = [
+            {
+                "id": news.id,
+                "title": news.title,
+                "img": news.img,
+                "date": news.date
+            }
+            for news in query
+        ]
+        return news
+
 
     def get_news_by_id(self, news_id: int) -> Optional[NewsResponse]:
         query = self.db.query(News).filter(News.id == news_id).first()
@@ -66,19 +94,13 @@ class NewsService:
             "text": query.text,
             "link": query.link,
             "keywords": self.get_news_keywords(news_id),
-            "related_laws": self.get_news_related_laws(news_id),
-            "categories": categories,
-            "related_news": self.get_news_related_news(categories)
+            "categories": categories
         }
         return news_detail
 
     def get_news_keywords(self, news_id: int) -> List[str]:
         keywords = self.db.query(Keyword).join(KeywordNews).filter(KeywordNews.news_id == news_id).all()
         return [keyword.name for keyword in keywords]
-
-    def get_news_related_laws(self, news_id: int) -> List[dict]:
-        laws = self.db.query(Law).join(NewsLaw).filter(NewsLaw.news_id == news_id).all()
-        return [{"id": law.id, "name": law.name} for law in laws]
 
     def get_news_categories(self, news_id: int) -> List[str]:
         query = self.db.query(Category).join(CategoryNews).filter(CategoryNews.news_id == news_id).all()
