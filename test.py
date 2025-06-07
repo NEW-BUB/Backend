@@ -75,11 +75,27 @@ def filtered_laws(offset: int, overflow_limit: int, search: str):
 def law(law_id: int):
     law = {
         "id": law_id,
+        "number": 1,
         "name": f"법안1{law_id}",
         "keywords": ["키워드1", "키워드2", "키워드3"],
         "date": "2025-05-22",
+        "proponent": "제안자",
         "link": f"링크{law_id}",
-        "processing_result": "원안가결"
+        "processing_status": 1,
+        "processing_result": "원안가결",
+        "summary": "제안이유 및 주요내용",
+        "parties": [
+            {
+                "id": 1,
+                "name": "정당1",
+                "img": "정당이미지1"
+            },
+            {
+                "id": 1,
+                "name": "정당1",
+                "img": "정당이미지1"
+            }
+        ]
     }
     return law
 
@@ -104,7 +120,7 @@ def issue_list(page: int = 1, limit: int = 30, q: str = "", category: str = '정
         "keywords": keywords,
         "has_more": has_more
     }
-
+    # KeywordList
     return keywords_data
 
 def filtered_keywords(offset: int, overflow_limit: int, search: str, category: str):
@@ -128,8 +144,50 @@ def filtered_keywords(offset: int, overflow_limit: int, search: str, category: s
     return all_keywords[offset:offset + overflow_limit]
 
 @app.get("/issue/{keyword_name}")
-def keyword(keyword_name: str):
-    pass
+def issues_related_news_laws(keyword_name: str):
+    news = {
+        "news": [
+            {
+                "id": 100,
+                "title": "뉴스100",
+                "img": "뉴스이미지100",
+                "date": "2025-05-22 05:22"
+            },
+            {
+                "id": 100,
+                "title": "뉴스100",
+                "img": "뉴스이미지100",
+                "date": "2025-05-22 05:22"
+            },
+            {
+                "id": 100,
+                "title": "뉴스100",
+                "img": "뉴스이미지100",
+                "date": "2025-05-22 05:22"
+            }
+        ]
+    }
+
+    laws = {
+        "laws": [
+            {
+                "id": 100,
+                "name": "의안100"
+            },
+            {
+                "id": 100,
+                "name": "의안100"
+            },
+            {
+                "id": 100,
+                "name": "의안100"
+            }
+        ]
+    }
+
+    return [laws, news]
+
+
 
 @app.get("/news")
 def news_list(page: int = 1, limit: int = 30, q: str = '', category: str = '정치'):
@@ -150,7 +208,7 @@ def news_list(page: int = 1, limit: int = 30, q: str = '', category: str = '정�
         "has_more": has_more,
         "news": news_data
     }
-
+    # NewList
     return newslist
 
 def filtered_news(offset: int, overflow_limit: int, search: str, category: str):
@@ -180,6 +238,11 @@ def news_detail(news_id: int):
         "id": news_id,
         "title": "뉴스1",
         "date": "2025-05-22 05:22",
+        "img": "뉴스이미지1",
+        "author": "저자1",
+        "link": "뉴스링크1",
+        "text": "뉴스내용",
+        "keywords": ["키워드1", "키워드2", "키워드3"],
         "related_laws": [
             {
                 "id": 1,
@@ -212,10 +275,12 @@ def news_detail(news_id: int):
             }
         ]
     }
+    # NewsResponse
     return news
 
 @app.get("/party")
 def party():
+    # PartyDetail
     issue_list = {
         "issues": [
             {
@@ -229,7 +294,7 @@ def party():
         ]
     }
 
-
+    # PartyList
     parties_list = {
         "parties": [
             {"id": i, "name": f'정당{i}', "img": f'img{i}.jpg'}
@@ -270,7 +335,7 @@ def party_detail(page: int = 1):
         "has_more": has_more,
         "issues": page_data
     }
-
+    # KeywordContribution
     return contribution
 
 @app.get("/party/{party_id}")
