@@ -243,46 +243,25 @@ def news_detail(news_id: int):
         "link": "뉴스링크1",
         "text": "뉴스내용",
         "keywords": ["키워드1", "키워드2", "키워드3"],
-        "related_laws": [
-            {
-                "id": 1,
-                "name": "법안1"
-            },
-            {
-                "id": 2,
-                "name": "법안2"
-            }
-        ],
-        "categories": ["정치", "경제", "문화"],
-        "related_news": [
-            {
-                "id": {news_id+1},
-                "title": f'뉴스{news_id+1}',
-                "img": f'뉴스이미지{news_id+1}',
-                "date": "2025-05-22 05:22"
-            },
-            {
-                "id": {news_id+2},
-                "title": f'뉴스{news_id+2}',
-                "img": f'뉴스이미지{news_id+2}',
-                "date": "2025-05-22 05:22"
-            },
-            {
-                "id": {news_id+3},
-                "title": f'뉴스{news_id+3}',
-                "img": f'뉴스이미지{news_id+3}',
-                "date": "2025-05-22 05:22"
-            }
-        ]
+        "categories": ["정치", "경제", "문화"]
     }
     # NewsResponse
     return news
 
 @app.get("/party")
 def party():
+    # PartyList
+    parties_list = [
+        {"id": i, "name": f'정당{i}', "img": f'img{i}.jpg'}
+        for i in range(1, 9)
+    ]
+
+    return parties_list
+
+@app.get("/party/top5_party")
+def keyword_top5_party(limit: int = 5):
     # PartyDetail
-    issue_list = {
-        "issues": [
+    issue_list = [
             {
                 "keyword": f"키워드{i}",
                 "top5_party": [
@@ -292,23 +271,12 @@ def party():
             }
             for i in range(1, 6)
         ]
-    }
-
-    # PartyList
-    parties_list = {
-        "parties": [
-            {"id": i, "name": f'정당{i}', "img": f'img{i}.jpg'}
-            for i in range(1, 9)
-        ]
-    }
-
-    return issue_list, parties_list
+    return issue_list
 
 @app.get("/party/party_detail")
-def party_detail(page: int = 1):
-    PAGE_SIZE = 15
-    offset = (page - 1) * PAGE_SIZE
-    limit = PAGE_SIZE + 1
+def party_detail(page: int = 1, limit: int = 14):
+    offset = (page - 1) * limit
+    limit = limit + 1
 
     all_keyword_contribution = {
         "issues": [
@@ -327,9 +295,9 @@ def party_detail(page: int = 1):
 
     page_data = all_keyword_contribution["issues"][offset:offset + limit]
 
-    has_more = len(page_data) > PAGE_SIZE
+    has_more = len(page_data) > limit
     if has_more:
-        page_data = page_data[:PAGE_SIZE]
+        page_data = page_data[:limit]
 
     contribution = {
         "has_more": has_more,
