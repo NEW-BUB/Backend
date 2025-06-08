@@ -15,15 +15,6 @@ async def get_parties(
     parties_list = party_service.get_party_list()
     return parties_list
 
-@router.get("/top5_party/", response_model=List[PartyDetailItem])
-async def get_keyword_top5_party(
-    limit: int = Query(14, ge=1, description="Limit of keywords per page"),
-    db: Session = Depends(get_db)
-):
-    party_service = PartyService(db=db)
-    top5 = party_service.get_keyword_party_contributions(overflow_limit=limit)
-    return top5
-
 @router.get("/party_detail", response_model=PartyDetail)
 async def get_keyword_top5_party(
     page: int = Query(1, ge=1, description="Page number"),
