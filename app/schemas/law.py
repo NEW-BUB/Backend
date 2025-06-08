@@ -21,9 +21,9 @@ class LawList(BaseModel):
 
 class LawResponse(LawBase):
     id: int
-    number:int
+    number: int
     proponent: str
-    date: datetime
+    date: str  # datetime → str로 변경
     processing_result: str
     summary: str
     keywords: List[str] = []

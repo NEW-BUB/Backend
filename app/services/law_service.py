@@ -51,11 +51,18 @@ class LawService:
                 "name": law.name
             }
             for law in query
-        ]
+        ]   
         return law_list_items
 
     def get_law_by_id(self, law_id: int) -> Optional[LawResponse]:
         query = self.db.query(Law).filter(Law.id == law_id).first()
+
+        # query.date가 str일 경우, datetime 객체로 변환 후 %Y-%m-%d로 포맷
+        from datetime import datetime
+        if isinstance(query.date, str):
+            date = datetime.fromisoformat(query.date).strftime("%Y-%m-%d")
+        else:
+            date = query.date.strftime("%Y-%m-%d")
 
         law = {
             "id": law_id,
@@ -63,7 +70,7 @@ class LawService:
             "number": query.number,
             "processing_status": query.processing_status,
             "processing_result": query.processing_result,
-            "date": query.date,
+            "date": date,
             "proponent": query.proponent,
             "summary": query.summary,
             "link": query.link,

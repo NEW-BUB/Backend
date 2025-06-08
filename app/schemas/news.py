@@ -5,7 +5,7 @@ from datetime import datetime
 class NewsBase(BaseModel):
     title: str
     img: Optional[str] = None
-    date: datetime
+    date: str
 
 class NewsCreate(NewsBase):
     author: str

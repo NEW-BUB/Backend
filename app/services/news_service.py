@@ -48,7 +48,11 @@ class NewsService:
                 "id": news.id,
                 "title": news.title,
                 "img": news.img,
-                "date": news.date
+                "date": (
+                    datetime.fromisoformat(news.date).strftime("%Y-%m-%d")
+                    if isinstance(news.date, str)
+                    else news.date.strftime("%Y-%m-%d")
+                )
             }
             for news in query
         ]
@@ -71,12 +75,18 @@ class NewsService:
         query = query.order_by(News.date.desc()).limit(limit)
         query = query.all()
 
+        from datetime import datetime
+        if isinstance(query.date, str):
+            date = datetime.fromisoformat(query.date).strftime("%Y-%m-%d")
+        else:
+            date = query.date.strftime("%Y-%m-%d")
+
         news = [
             {
                 "id": news.id,
                 "title": news.title,
                 "img": news.img,
-                "date": news.date
+                "date": date
             }
             for news in query
         ]
@@ -90,15 +100,20 @@ class NewsService:
 
         categories = self.get_news_categories(news_id)
 
+        from datetime import datetime
+        if isinstance(query.date, str):
+            date = datetime.fromisoformat(query.date).strftime("%Y-%m-%d")
+        else:
+            date = query.date.strftime("%Y-%m-%d")
+
         news_detail = {
             "id": news_id,
             "title": query.title,
             "img": query.img,
-            "date": query.date,
+            "date": date,
             "author": query.author,
             "text": query.text,
             "link": query.link,
-            # "keywords": [],
             "keywords": self.get_news_keywords(news_id),
             "categories": categories
         }
