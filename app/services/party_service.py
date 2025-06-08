@@ -58,6 +58,9 @@ class PartyService:
             )
 
             counts = [contrib.count for party, contrib in party_contribs]
+            if sum(counts) == 0:
+                continue
+
             rates = self.calculate_percentile(counts) if counts else []
 
             top5_party = [
