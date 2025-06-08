@@ -21,6 +21,7 @@ class PartyDetailItem(BaseModel):
     top5_party: List[PartyKeywordContribution]
 
 class PartyDetail(BaseModel):
+    has_more: bool
     issues: List[PartyDetailItem]
 
 class KeywordContribution(PartyDetail):

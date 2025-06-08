@@ -11,8 +11,6 @@ class NewsCreate(NewsBase):
     author: str
     link: str
     text: str
-    keywords: List[str] = []
-    categories: List[str]
 
 class NewsListItem(NewsBase):
     id: int

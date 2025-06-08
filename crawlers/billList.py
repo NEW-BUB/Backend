@@ -86,9 +86,7 @@ def fetch_bill_ppsr(bill_id):
 
             proponent.append(ppsr_nm)
 
-            ppsr_poly_nm = item.findtext("PPSR_POLY_NM", default="")
-            if ppsr_poly_nm == "":
-                ppsr_poly_nm = fetch_bill_ppsr_plpt(ppsr_nm)
+            ppsr_poly_nm = fetch_bill_ppsr_plpt(ppsr_nm)
             party.append(ppsr_poly_nm)
 
         page += 1  # 다음 페이지로 이동
@@ -130,10 +128,13 @@ def fetch_bill_ppsr_plpt(name):
 
         for item in rows:
             gtelt_eraco = item.findtext("GTELT_ERACO", default="")
+            print(gtelt_eraco)
             if gtelt_eraco.find('제22대') != -1:
                 plpt_nm = item.findtext("PLPT_NM", default="")
                 plpt = plpt_nm.split('/')
+                print(plpt)
                 return plpt[-1]
+        page += 1
 
 
 def fetch_bill():
@@ -258,4 +259,45 @@ def crawl_bill_summary(url):
 
 # 실행
 if __name__ == "__main__":
-    fetch_bill()
+    # fetch_bill()
+
+    import csv
+    import requests
+    import time
+    import xml.etree.ElementTree as ET
+    import ast
+
+    url = "https://open.assembly.go.kr/portal/openapi/ALLNAMEMBER"
+    size = 100
+    INTEGRATED_BILL_INFO_API_KEY = INTEGRATED_BILL_INFO_API_KEY  # 실제 API 키를 여기에 입력하세요
+
+    header = ['number', 'name', 'date', 'proponent', 'party', 'link', 'processing_status', 'processing_result',
+              'summary', 'keywords']
+
+    # CSV 파일 읽기
+    with open('data.csv', 'r', encoding='utf-8', newline="") as csvfile:
+        reader = csv.DictReader(csvfile)
+        existing_data = {row["proponent"]: row for row in reader}
+    # print(existing_data)
+
+    # Proponent를 기준으로 party 값을 변경하려면
+    for proponent, row in existing_data.items():
+        # 'party' 필드의 값을 리스트로 변환
+        party_list = ast.literal_eval(row["party"])
+
+        # 'fetch_bill_ppsr_plpt' 함수로 새로운 party 값을 얻는다
+        new_party_list = []  # 각 proponent에 대해 party 값을 업데이트
+
+        for p in ast.literal_eval(row["proponent"]):
+            # print(p)
+            new_party_list.append(fetch_bill_ppsr_plpt(str(p)))
+
+        print(new_party_list)
+        # 새로운 party 리스트를 row에 저장
+        row["party"] = str(new_party_list)  # 다시 문자열로 변환하여 저장
+
+    # # 기존 데이터를 다시 CSV로 저장
+    # with open("data.csv", mode="w", encoding="utf-8", newline="") as file:
+    #     writer = csv.DictWriter(file, fieldnames=header)
+    #     writer.writeheader()  # 헤더를 먼저 기록
+    #     writer.writerows(existing_data.values())

@@ -14,7 +14,7 @@ async def get_keywords_list(
         page: int = Query(1, ge=1, description="Page number"),
         limit: int = Query(30, ge=1, description="Limit of keywords per page"),
         q: str = Query("", description="Query string"),
-        category: str = Query(""),
+        category: str = Query("정치"),
         db: Session = Depends(get_db)
 ):
     overflow_limit = limit + 1
@@ -38,7 +38,7 @@ async def get_keywords_list(
         "has_more": has_more
     }
 
-@router.get("/{keyword_nm}")
+@router.get("/{keyword_nm}", response_model=List[dict])
 async def get_laws_news_by_keyword(
         keyword_nm: str,
         limit: int = Query(7, ge=1, description="Limit of keywords per page"),

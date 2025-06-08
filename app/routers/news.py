@@ -17,7 +17,7 @@ def get_news_list(
         page: int = Query(1, ge=1, description="Page number"),
         limit: int = Query(30, ge=1, description="Limit of keywords per page"),
         q: str = Query(""),
-        category: str = Query(""),
+        category: str = Query("정치"),
         db: Session = Depends(get_db)
 ):
     offset = (page - 1) * limit
