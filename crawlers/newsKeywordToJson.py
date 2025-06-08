@@ -40,7 +40,7 @@ def save_json(json_file, json_data):
 # 메인 실행
 if __name__ == "__main__":
     # CSV 파일 경로
-    news_files = ["연합뉴스 데이터.csv", "경향신문 데이터.csv", "동아일보 데이터.csv", "한겨레 데이터.csv", "jtbc 데이터.csv"]
+    news_files = ["연합뉴스 데이터.csv"]
     laws_file = ["bill_data.csv"]
     json_file = "news_keywords.json"
 
