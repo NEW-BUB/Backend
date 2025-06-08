@@ -18,7 +18,7 @@ class NewsService:
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 
-    def get_news_list(self, offset: int, overflow_limit: int = 30, search: str = "", category: str = "") -> List[NewsListItem]:
+    def get_news_list(self, offset: int, overflow_limit: int = 30, search: str = "", category: str = "정치") -> List[NewsListItem]:
         query = self.db.query(News)
         if not query:
             return None
