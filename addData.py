@@ -434,11 +434,11 @@ def createParties():
 
 @app.get("/")
 def main():
-  # createCategories()
-  # createParties()
-  # createKeywords("keyword_category.json")
+  createCategories()
+  createParties()
+  createKeywords("keyword_category.json")
   createNews()
-  # createBills()
+  createBills()
 
   session.commit()
   

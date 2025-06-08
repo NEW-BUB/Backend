@@ -4,10 +4,8 @@ from app.models.party import Party
 from app.models.keyword import Keyword
 from app.models.keyword_party_contribution import KeywordPartyContribution
 
-
 from fastapi import Depends
 from app.dependencies import get_db
-
 
 class PartyService:
     def __init__(self, db: Session = Depends(get_db)):
@@ -24,7 +22,6 @@ class PartyService:
             for party in parties
         ]
 
-
     def calculate_percentile(self, counts: List[int]) -> List[float]:
         if not counts:
             return []
@@ -33,10 +30,11 @@ class PartyService:
         return percentiles
 
     def get_keyword_party_contributions(self, offset: int = 0, overflow_limit: int = 15) -> List[dict]:
-        # 1. 상위 키워드 조회
+        # 1️⃣ 상위 키워드 조회 (LIMIT 추가로 성능 안정성 개선)
         keywords = (
             self.db.query(Keyword)
             .order_by(Keyword.count.desc())
+            .limit(100)  # 상위 100개까지만 조회 (튜닝 가능)
             .all()
         )
 
@@ -45,7 +43,7 @@ class PartyService:
 
         result = []
         for keyword in keywords:
-            # 2. 각 키워드별 top5 정당 조회
+            # 2️⃣ 각 키워드별 top5 정당 조회
             party_contribs = (
                 self.db.query(Party, KeywordPartyContribution)
                 .join(KeywordPartyContribution, Party.id == KeywordPartyContribution.party_id)
@@ -69,12 +67,13 @@ class PartyService:
                 }
                 for i, (party, contrib) in enumerate(party_contribs)
             ]
+
             result.append({
                 "keyword": keyword.name,
                 "top5_party": top5_party
             })
 
-        return result[offset:offset+overflow_limit]
+        return result[offset:offset + overflow_limit]
 
     def get_party_by_id(self, party_id: int) -> Optional[Party]:
         return self.db.query(Party).filter(Party.id == party_id).first()

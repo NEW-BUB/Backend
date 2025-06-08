@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from typing import List, Optional
+from datetime import datetime
 
 from app.models.law import Law
 from app.models.keyword import Keyword
@@ -10,10 +11,8 @@ from app.models.law_party_contribution import LawPartyContribution
 from app.schemas.law import LawListItem, LawResponse, LawList
 from app.schemas.party import PartyList
 
-
 from fastapi import Depends
 from app.dependencies import get_db
-
 
 class LawService:
     def __init__(self, db: Session = Depends(get_db)):
@@ -23,10 +22,15 @@ class LawService:
         query = self.db.query(Law)
 
         if search and search.strip():
-            search_term = f"%{search.lower()}%"
-            query = query.join(KeywordLaw).join(Keyword).filter(Keyword.name.ilike(search_term))
+            # search_term = f"%{search.lower()}%"
+            # query = query.join(KeywordLaw).join(Keyword).filter(Keyword.name.ilike(search_term))
+            
+            search_term = search.lower()
+            # 정확 일치 검색 → == 유지
+            query = query.join(KeywordLaw).join(Keyword).filter(Keyword.name == search_term)
 
         query = query.order_by(Law.date.desc()).offset(offset).limit(overflow_limit).all()
+
         law_list_items = [
             {
                 "id": law.id,
@@ -42,27 +46,32 @@ class LawService:
 
         if search and search.strip():
             search_term = search.lower()
+            # 정확 일치 검색 → == 유지
             query = query.join(KeywordLaw).join(Keyword).filter(Keyword.name == search_term)
 
         query = query.order_by(Law.date.desc()).limit(limit).all()
+
         law_list_items = [
             {
                 "id": law.id,
                 "name": law.name
             }
             for law in query
-        ]   
+        ]
         return law_list_items
 
     def get_law_by_id(self, law_id: int) -> Optional[LawResponse]:
         query = self.db.query(Law).filter(Law.id == law_id).first()
 
-        # query.date가 str일 경우, datetime 객체로 변환 후 %Y-%m-%d로 포맷
-        from datetime import datetime
-        if isinstance(query.date, str):
-            date = datetime.fromisoformat(query.date).strftime("%Y-%m-%d")
-        else:
-            date = query.date.strftime("%Y-%m-%d")
+        if not query:
+            return None
+
+        # query.date 가 str 인 경우 처리
+        date = (
+            datetime.fromisoformat(query.date).strftime("%Y-%m-%d")
+            if isinstance(query.date, str)
+            else query.date.strftime("%Y-%m-%d")
+        )
 
         law = {
             "id": law_id,
@@ -81,10 +90,15 @@ class LawService:
         return law
 
     def get_law_keywords(self, law_id: int) -> List[str]:
-        keywords = self.db.query(Keyword).join(KeywordLaw).filter(KeywordLaw.law_id == law_id).all()
+        keywords = (
+            self.db.query(Keyword)
+            .join(KeywordLaw)
+            .filter(KeywordLaw.law_id == law_id)
+            .all()
+        )
         return [keyword.name for keyword in keywords]
 
-    def get_law_party_contributions(self, law_id: int) -> PartyList:
+    def get_law_party_contributions(self, law_id: int) -> List[dict]:
         parties = (
             self.db.query(Party)
             .join(LawPartyContribution)
