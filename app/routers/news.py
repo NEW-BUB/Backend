@@ -29,7 +29,8 @@ def get_news_list(
         offset=offset,
         overflow_limit=overflow_limit,
         search=q,
-        category=category
+        # category=category
+        category=""
     )
 
     has_more = len(news_list) > limit

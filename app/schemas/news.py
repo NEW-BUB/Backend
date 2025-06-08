@@ -17,7 +17,7 @@ class NewsListItem(NewsBase):
 
 class NewsResponse(NewsBase):
     id: int
-    author: str
+    author: List[str]
     link: str
     text: str
     keywords: List[str] = []

@@ -147,9 +147,28 @@ if __name__ == "__main__":
     # 뉴스 크롤링
     # news_crawling(keys)
     
+    # for csv_file in news_files:
+    #     try:
+    #         with open(csv_file, mode="r", encoding="utf-8") as file:
+    #             reader = csv.DictReader(file)
+    #             existing_data = {row["link"]: row for row in reader}
+    #             link_list = [link for link in existing_data.keys()]
+    #     except FileNotFoundError:
+    #         existing_data = {}
+            
+    #     for link in link_list:
+    #         print(existing_data[link]["img_src"])
+    #         if(existing_data[link]["img_src"] == ""):
+    #             del existing_data[link]
+            
+    #     with open(csv_file, mode="w", encoding="utf-8", newline="") as file:
+    #         writer = csv.DictWriter(file, fieldnames=fieldnames)
+    #         writer.writeheader()
+    #         writer.writerows(existing_data.values())
+    
     # 뉴스 키워드 추출
     csv_file = news_files[2] # 현재 추출할 키워드 csv
     # get_news_keywords(csv_file)
     
     # 뉴스 키워드 카운팅팅
-    keyword_count(news_files)
+    keyword_count([news_files[0]])
