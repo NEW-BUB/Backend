@@ -27,7 +27,7 @@ class NewsService:
             category_subquery = (
                 self.db.query(CategoryNews.news_id)
                 .join(Category)
-                .filter(Category.name.ilike(f"%{category}%"))
+                .filter(Category.name == category)
             )
             query = query.filter(News.id.in_(category_subquery))
 
