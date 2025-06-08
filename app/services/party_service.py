@@ -37,8 +37,6 @@ class PartyService:
         keywords = (
             self.db.query(Keyword)
             .order_by(Keyword.count.desc())
-            .offset(offset)
-            .limit(overflow_limit)
             .all()
         )
 
@@ -76,7 +74,7 @@ class PartyService:
                 "top5_party": top5_party
             })
 
-        return result
+        return result[offset:offset+overflow_limit]
 
     def get_party_by_id(self, party_id: int) -> Optional[Party]:
         return self.db.query(Party).filter(Party.id == party_id).first()
