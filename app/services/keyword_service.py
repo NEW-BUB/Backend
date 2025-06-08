@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from typing import List
+from typing import List, Optional
 
 from app.models.category import Category
 from app.models.category_keyword import CategoryKeyword
@@ -26,3 +26,13 @@ class KeywordService:
 
         query = query.order_by(Keyword.count.desc()).offset(offset).limit(overflow_limit).all()
         return [keyword.name for keyword in query]
+
+    def increment_keyword_count(self, keyword_nm: str) -> Optional[Keyword]:
+        keyword = self.db.query(Keyword).filter(Keyword.name == keyword_nm).first()
+        if keyword:
+            keyword.count = (keyword.count or 0) + 1
+            self.db.commit()
+            self.db.refresh(keyword)
+            return keyword
+        return None
+    
