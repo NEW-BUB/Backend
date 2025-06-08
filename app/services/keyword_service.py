@@ -6,8 +6,12 @@ from app.models.category import Category
 from app.models.category_keyword import CategoryKeyword
 from app.models.keyword import Keyword
 
+
+from fastapi import Depends
+from app.dependencies import get_db
+
 class KeywordService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 
     def get_keywords_list(self, offset: int, overflow_limit: int = 30, search: str = "", category: str = "") -> List[str]:

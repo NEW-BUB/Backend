@@ -11,8 +11,12 @@ from app.schemas.law import LawListItem, LawResponse, LawList
 from app.schemas.party import PartyList
 
 
+from fastapi import Depends
+from app.dependencies import get_db
+
+
 class LawService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 
     def get_laws_list(self, offset: int, overflow_limit: int, search: str = "") -> List[LawListItem]:

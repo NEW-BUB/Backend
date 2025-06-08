@@ -10,8 +10,12 @@ from app.models.news_law import NewsLaw
 from app.schemas.news import *
 
 
+from fastapi import Depends
+from app.dependencies import get_db
+
+
 class NewsService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 
     def get_news_list(self, offset: int, overflow_limit: int = 30, search: str = "", category: str = "") -> List[NewsListItem]:
@@ -82,6 +86,7 @@ class NewsService:
     def get_news_by_id(self, news_id: int) -> Optional[NewsResponse]:
         query = self.db.query(News).filter(News.id == news_id).first()
 
+        print(query.text)
 
         categories = self.get_news_categories(news_id)
 
@@ -93,7 +98,8 @@ class NewsService:
             "author": query.author,
             "text": query.text,
             "link": query.link,
-            "keywords": self.get_news_keywords(news_id),
+            "keywords": [],
+            # "keywords": self.get_news_keywords(news_id),
             "categories": categories
         }
         return news_detail

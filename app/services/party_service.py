@@ -5,8 +5,12 @@ from app.models.keyword import Keyword
 from app.models.keyword_party_contribution import KeywordPartyContribution
 
 
+from fastapi import Depends
+from app.dependencies import get_db
+
+
 class PartyService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session = Depends(get_db)):
         self.db = db
 
     def get_party_list(self):
