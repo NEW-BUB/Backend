@@ -98,8 +98,8 @@ class NewsService:
             "author": query.author,
             "text": query.text,
             "link": query.link,
-            "keywords": [],
-            # "keywords": self.get_news_keywords(news_id),
+            # "keywords": [],
+            "keywords": self.get_news_keywords(news_id),
             "categories": categories
         }
         return news_detail
