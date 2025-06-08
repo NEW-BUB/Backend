@@ -1,3 +1,4 @@
+import json
 import os
 import csv
 import time
@@ -93,48 +94,29 @@ def fetch_bill_ppsr(bill_id):
 
     return proponent, party
 
+
+def find_party_by_name_from_file(name, party_data):
+    for party, members in party_data.items():
+        if name in members:
+            return party
+    return "소속 정당 없음"
+
 def fetch_bill_ppsr_plpt(name):
-    """
+    # JSON 파일 읽기
+    try:
+        with open('a.json', 'r', encoding='utf-8') as jsonfile:
+            party_data = json.load(jsonfile)
+        print(f"JSON 파일에서 {len(party_data)}개의 정당 정보를 읽었습니다.")
+    except FileNotFoundError:
+        print("a.json 파일을 찾을 수 없습니다.")
+        exit()
 
-    Args:
-        name: 국회의원명
+    party = find_party_by_name_from_file(name, party_data)
+    if party == "소속 정당 없음": return
 
-    국회의원 정보 통합 api
-    Returns: 해당 국회의원의 정당명
+    return party
 
-    """
 
-    url = "https://open.assembly.go.kr/portal/openapi/ALLNAMEMBER"
-    page = 1
-    size = 100
-
-    while True:
-        params = {
-            "KEY": INTEGRATED_BILL_INFO_API_KEY,
-            "Type": "xml",
-            "pIndex": page,
-            "pSize": size,
-            "NAAS_NM": name
-        }
-
-        response = requests.get(url, params=params)
-        response.encoding = "utf-8"
-
-        root = ET.fromstring(response.text)
-        rows = root.findall(".//row")
-
-        if not rows:
-            break  # 이 BILL_NO에 대해 더 이상 데이터 없음
-
-        for item in rows:
-            gtelt_eraco = item.findtext("GTELT_ERACO", default="")
-            print(gtelt_eraco)
-            if gtelt_eraco.find('제22대') != -1:
-                plpt_nm = item.findtext("PLPT_NM", default="")
-                plpt = plpt_nm.split('/')
-                print(plpt)
-                return plpt[-1]
-        page += 1
 
 
 def fetch_bill():
@@ -254,50 +236,3 @@ def crawl_bill_summary(url):
         return text
     else:
         print("해당 요소가 없습니다.")
-
-
-
-# 실행
-if __name__ == "__main__":
-    # fetch_bill()
-
-    import csv
-    import requests
-    import time
-    import xml.etree.ElementTree as ET
-    import ast
-
-    url = "https://open.assembly.go.kr/portal/openapi/ALLNAMEMBER"
-    size = 100
-    INTEGRATED_BILL_INFO_API_KEY = INTEGRATED_BILL_INFO_API_KEY  # 실제 API 키를 여기에 입력하세요
-
-    header = ['number', 'name', 'date', 'proponent', 'party', 'link', 'processing_status', 'processing_result',
-              'summary', 'keywords']
-
-    # CSV 파일 읽기
-    with open('data.csv', 'r', encoding='utf-8', newline="") as csvfile:
-        reader = csv.DictReader(csvfile)
-        existing_data = {row["proponent"]: row for row in reader}
-    # print(existing_data)
-
-    # Proponent를 기준으로 party 값을 변경하려면
-    for proponent, row in existing_data.items():
-        # 'party' 필드의 값을 리스트로 변환
-        party_list = ast.literal_eval(row["party"])
-
-        # 'fetch_bill_ppsr_plpt' 함수로 새로운 party 값을 얻는다
-        new_party_list = []  # 각 proponent에 대해 party 값을 업데이트
-
-        for p in ast.literal_eval(row["proponent"]):
-            # print(p)
-            new_party_list.append(fetch_bill_ppsr_plpt(str(p)))
-
-        print(new_party_list)
-        # 새로운 party 리스트를 row에 저장
-        row["party"] = str(new_party_list)  # 다시 문자열로 변환하여 저장
-
-    # # 기존 데이터를 다시 CSV로 저장
-    # with open("data.csv", mode="w", encoding="utf-8", newline="") as file:
-    #     writer = csv.DictWriter(file, fieldnames=header)
-    #     writer.writeheader()  # 헤더를 먼저 기록
-    #     writer.writerows(existing_data.values())
