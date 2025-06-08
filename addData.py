@@ -439,8 +439,6 @@ def main():
   createNews()
   createBills()
 
-# 모든 데이터를 추가한 후 한 번만 커밋
   session.commit()
-  
   
   return ""
