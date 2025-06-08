@@ -1,7 +1,5 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-
-from app.models import party
 from app.models.party import Party
 from app.models.keyword import Keyword
 from app.models.keyword_party_contribution import KeywordPartyContribution
@@ -30,50 +28,60 @@ class PartyService:
         percentiles = [(count / total) * 100 for count in counts]
         return percentiles
 
-    def get_keyword_party_contributions(self) -> List[dict]:
-        subquery = (
-                self.db.query(Party, KeywordPartyContribution)
-                .join(KeywordPartyContribution)
-                .order_by(KeywordPartyContribution.count.desc())
-                .join(Keyword)
-                .order_by(Keyword.count.desc())
-                .limit(5)
-                .all()
+    def get_keyword_party_contributions(self, offset: int = 0, overflow_limit: int = 15) -> List[dict]:
+        # 1. 상위 키워드 조회
+        keywords = (
+            self.db.query(Keyword)
+            .order_by(Keyword.count.desc())
+            .offset(offset)
+            .limit(overflow_limit)
+            .all()
         )
 
-        if not subquery:
-            return [{"name": "", "top5_party": []}]
-            
-        result = []
+        if not keywords:
+            return [{"keyword": "", "top5_party": []}]
 
-        for party, contrib in subquery:
-            counts = [contrib.count for party, contrib in subquery]
-            rates = self.calculate_percentile(counts)
+        result = []
+        for keyword in keywords:
+            # 2. 각 키워드별 top5 정당 조회
+            party_contribs = (
+                self.db.query(Party, KeywordPartyContribution)
+                .join(KeywordPartyContribution, Party.id == KeywordPartyContribution.party_id)
+                .filter(KeywordPartyContribution.keyword_id == keyword.id)
+                .order_by(KeywordPartyContribution.count.desc())
+                .limit(5)
+                .all()
+            )
+
+            counts = [contrib.count for party, contrib in party_contribs]
+            rates = self.calculate_percentile(counts) if counts else []
 
             top5_party = [
                 {
                     "id": party.id,
                     "name": party.name,
-                    "rate": rates[i]
+                    "rate": rates[i] if i < len(rates) else 0.0
                 }
-                for i, (party,contribution) in enumerate(subquery)
+                for i, (party, contrib) in enumerate(party_contribs)
             ]
-
-            result.append({"name": party.name, "top5_party": top5_party})
+            result.append({
+                "keyword": keyword.name,
+                "top5_party": top5_party
+            })
 
         return result
 
     def get_party_by_id(self, party_id: int) -> Optional[Party]:
         return self.db.query(Party).filter(Party.id == party_id).first()
 
-    def get_party_keyword_contributions(self, party_id: int, limit: int) -> dict:
+    def get_party_keyword_contributions(self, party_id: int, limit: int = 30) -> dict:
         party = self.get_party_by_id(party_id)
         if not party:
             return {}
 
         keyword_contributions = (
-            self.db.query(KeywordPartyContribution, Keyword)
-            .join(Keyword, Keyword.id == KeywordPartyContribution.keyword_id)
+            self.db.query(Keyword, KeywordPartyContribution)
+            .join(KeywordPartyContribution, Keyword.id == KeywordPartyContribution.keyword_id)
             .filter(KeywordPartyContribution.party_id == party_id)
             .order_by(KeywordPartyContribution.count.desc())
             .limit(limit)
@@ -88,16 +96,14 @@ class PartyService:
                 "max_count": 0
             }
 
-        counts = [contrib.count for contrib, keyword in keyword_contributions]
-        max_count = max(counts)
-
         contributions = [
             {
-                "name": keyword.name,
+                "keyword": keyword.name,
                 "count": contrib.count
             }
-            for contrib, keyword in keyword_contributions
+            for keyword, contrib in keyword_contributions
         ]
+        max_count = max([c["count"] for c in contributions]) if contributions else 0
 
         return {
             "name": party.name,
