@@ -208,15 +208,17 @@ def createNews():
         session.commit()
         
         print(news_model.id)
+        print(news_model.title)
+        print(categories)
         
         # 카테고리별 뉴스 모델 추가
         for category in categories:
-          if category in category_ids:  # category가 category_ids에 존재하는지 확인
-            category_news_model = models.CategoryNews(
-              category_id=category_ids[category],
-              news_id=news_model.id
-            )
-            session.add(category_news_model)
+          print(category_ids[category])
+          category_news_model = models.CategoryNews(
+            category_id=category_ids[category],
+            news_id=news_model.id
+          )
+          session.add(category_news_model)
         
         keyword_ids = getKeywordId(keywords)
         for keyword in keywords:
@@ -339,7 +341,6 @@ def createKeywords(file):
       
       print(keyword_model.id)
       
-      # 카테고리별 뉴스 모델 추가
       for category in existing_data[item]:
         if category in category_ids:  # category가 category_ids에 존재하는지 확인
           category_news_model = models.CategoryKeyword(
@@ -433,11 +434,11 @@ def createParties():
 
 @app.get("/")
 def main():
-  createCategories()
-  createParties()
-  createKeywords("keyword_category.json")
+  # createCategories()
+  # createParties()
+  # createKeywords("keyword_category.json")
   createNews()
-  createBills()
+  # createBills()
 
   session.commit()
   
