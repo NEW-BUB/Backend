@@ -6,7 +6,7 @@ class Keyword(Base):
     __tablename__ = "keywords"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(15))
+    name = Column(String(50))
     count = Column(Integer)
 
     news = relationship("KeywordNews", back_populates="keyword")

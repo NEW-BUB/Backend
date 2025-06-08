@@ -236,3 +236,35 @@ def crawl_bill_summary(url):
         return text
     else:
         print("해당 요소가 없습니다.")
+
+from collections import defaultdict
+
+def create_party_keywords_json(input_csv_file, output_json_file):
+    party_keywords = defaultdict(list)
+    
+    try:
+        with open(input_csv_file, mode="r", encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            
+            for row in reader:
+                party_names = eval(row["parties"])
+                keywords = eval(row["keywords"])
+                
+                party_names = list(set(party_names))
+                
+                for party in party_names:
+                    party_keywords[party].extend(keywords)  # Add the keywords to the party's list
+
+        party_keywords = dict(party_keywords)
+
+        with open(output_json_file, "w", encoding="utf-8") as json_file:
+            json.dump(party_keywords, json_file, ensure_ascii=False, indent=2)
+
+        print(f"Keywords mapped to parties and saved to {output_json_file}")
+    except Exception as e:
+        print(f"Error processing the CSV file: {e}")
+
+if __name__ == "__main__":
+    input_csv_file = 'bill_data.csv'  # Replace with your CSV file path
+    output_json_file = 'party_keywords.json'
+    create_party_keywords_json(input_csv_file, output_json_file)

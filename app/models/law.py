@@ -6,7 +6,7 @@ class Law(Base):
     __tablename__ = "laws"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(50))
+    name = Column(String(255))
     number = Column(Integer)
     proponent = Column(String(30))
     date = Column(Date)

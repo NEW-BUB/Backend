@@ -3,15 +3,19 @@ import csv
 import traceback
 import json
 
+# csv_files = [
+#     "연합뉴스 데이터.csv",
+#     "경향신문 데이터.csv",
+#     "jtbc 데이터.csv",
+#     "동아일보 데이터.csv",
+#     "한겨레 데이터.csv"
+# ]
 csv_files = [
-    "연합뉴스 데이터.csv",
-    "경향신문 데이터.csv",
-    "jtbc 데이터.csv",
-    "동아일보 데이터.csv",
-    "한겨레 데이터.csv"
+    "bill_data.csv"
 ]
 
-fieldnames = ["categories", "keywords", "title", "link", "author", "pubDate", "img_src", "text"]
+# fieldnames = ["categories", "keywords", "title", "link", "author", "pubDate", "img_src", "text"]
+fieldnames = ["number","name","date","proponent",'party',"link","processing_status","processing_result","summary","keywords"]
 
 with open("keyword_clean.json", "r", encoding="utf-8") as f:
     keyword_mapping = json.load(f)
