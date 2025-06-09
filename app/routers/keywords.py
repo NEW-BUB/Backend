@@ -45,6 +45,12 @@ async def get_laws_news_by_keyword(
         limit: int = Query(7, ge=1, description="Limit of keywords per page"),
         db: Session = Depends(get_db)
 ):  
+    keyword = db.query(Keyword).filter(Keyword.name == keyword_nm).first()
+    if keyword:
+        keyword.count += 1
+        db.commit()
+        db.refresh(keyword)
+
     law_service = LawService(db=db)
     laws = law_service.get_complete_laws_list(limit=limit, search=keyword_nm)
 
@@ -52,19 +58,3 @@ async def get_laws_news_by_keyword(
     news = news_service.get_complete_news_list(limit=limit, search=keyword_nm)
 
     return [{"laws": laws}, {"news": news}]
-
-@router.post("/{keyword_nm}/increment")
-def increment_keyword_count(
-    keyword_nm: str,
-    db: Session = Depends(get_db)
-):
-    service = KeywordService(db=db)
-    # 이름으로 키워드 조회
-    keyword = db.query(Keyword).filter(Keyword.name == keyword_nm).first()
-    if not keyword:
-        raise HTTPException(status_code=404, detail="Keyword not found")
-    # count 증가
-    keyword.count += 1
-    db.commit()
-    db.refresh(keyword)
-    return {"id": keyword.id, "name": keyword.name, "count": keyword.count}
