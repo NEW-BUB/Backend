@@ -1,28 +1,27 @@
 from pydantic import BaseModel
 from typing import List, Dict, Optional, Any
-from datetime import datetime
 
 class NewsBase(BaseModel):
-    title: str
+    title: str = ""
     img: Optional[str] = None
-    date: str
+    date: str = ""
 
 class NewsCreate(NewsBase):
-    author: str
-    link: str
-    text: str
+    author: str = ""
+    link: str = ""
+    text: str = ""
 
 class NewsListItem(NewsBase):
-    id: int
+    id: int = 1
 
 class NewsResponse(NewsBase):
-    id: int
-    author: str
-    link: str
-    text: str
+    id: int = 1
+    author: str = ""
+    link: str = ""
+    text: str = ""
     keywords: List[str] = []
     categories: List[str] = []
 
 class NewsList(BaseModel):
-    news: List[NewsListItem]
-    has_more: bool
+    news: List[NewsListItem] = []
+    has_more: bool = False

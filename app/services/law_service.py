@@ -14,6 +14,8 @@ from app.schemas.party import PartyList
 from fastapi import Depends
 from app.dependencies import get_db
 
+from sqlalchemy import or_, func
+
 class LawService:
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
@@ -22,12 +24,18 @@ class LawService:
         query = self.db.query(Law)
 
         if search and search.strip():
-            # search_term = f"%{search.lower()}%"
-            # query = query.join(KeywordLaw).join(Keyword).filter(Keyword.name.ilike(search_term))
-            
-            search_term = search.lower()
-            # 정확 일치 검색 → == 유지
-            query = query.join(KeywordLaw).join(Keyword).filter(Keyword.name == search_term)
+            search_term_no_space = search.replace(' ', '').lower()
+
+            keyword_subquery = self.db.query(KeywordLaw.law_id).join(Keyword).filter(
+                func.lower(func.replace(Keyword.name, ' ', '')).ilike(f'%{search_term_no_space}%')
+            )
+
+            query = query.filter(
+                or_(
+                    Law.id.in_(keyword_subquery),
+                    func.lower(func.replace(Law.name, ' ', '')).ilike(f'%{search_term_no_space}%')
+                )
+            )
 
         query = query.order_by(Law.date.desc()).offset(offset).limit(overflow_limit).all()
 
@@ -39,7 +47,9 @@ class LawService:
             }
             for law in query
         ]
+
         return law_list_items
+
 
     def get_complete_laws_list(self, limit: int, search: str = "") -> List[dict]:
         query = self.db.query(Law)

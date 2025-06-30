@@ -432,14 +432,93 @@ def createParties():
         print(f"Error processing record {party}: {e}")
 
 
+def createKeywords1():
+  existing_data = []
+  try:
+    with open("keyword1.json", "r", encoding="utf-8") as f:
+      existing_data = json.load(f)
+  except FileNotFoundError:
+    print("경고: 'keyword1.json' 파일을 찾을 수 없습니다. 빈 데이터로 시작합니다.")
+    return # No data to process, so exit
+  except json.JSONDecodeError as e:
+    print(f"오류: 'keyword1.json' 파일 파싱 중 오류 발생: {e}")
+    return # Cannot process invalid JSON
+
+  keyword_list = []
+  try:
+    with open("keyword_list.json", "r", encoding="utf-8") as f:
+      keyword_list = json.load(f)
+  except FileNotFoundError:
+    print("경고: 'keyword_list.json' 파일을 찾을 수 없습니다. 빈 데이터로 시작합니다.")
+    return # No data to process, so exit
+  except json.JSONDecodeError as e:
+    print(f"오류: 'keyword_list.json' 파일 파싱 중 오류 발생: {e}")
+
+  processed_count = 0
+  errors_count = 0
+
+  try:
+    for item in existing_data:
+      try:
+        keyword_id = item.get("id")
+        if keyword_id is None:
+          print(f"경고: 'id'가 없는 레코드를 건너뜁니다: {item}")
+          errors_count += 1
+          continue
+
+        categories = item.get("category")
+
+        if not categories:
+          continue # Skip items with no categories
+
+        # Ensure categories is a list, even if it's just one category
+        if not isinstance(categories, list):
+          categories = [categories] # Make it a list for consistent processing
+
+        category_ids_map = getCategoryId(categories) # Get the map of category names to IDs
+
+        if keyword_id in keyword_list:
+          continue
+
+        for category_name in categories:
+          if category_name in category_ids_map:
+            category_keyword_model = models.CategoryKeyword(
+                category_id=category_ids_map[category_name],
+                keyword_id=keyword_id
+            )
+            session.add(category_keyword_model)
+          else:
+            print(f"경고: '{category_name}' 카테고리 ID를 찾을 수 없습니다 (키워드 ID: {keyword_id}).")
+            errors_count += 1
+        keyword_list.append(keyword_id)
+        processed_count += 1
+
+      except Exception as e:
+        print(f"오류: 레코드 처리 중 예외 발생 {item}: {e}")
+        errors_count += 1
+
+    session.commit()
+    print(f"데이터베이스 커밋 성공: {processed_count}개 레코드 처리 완료.")
+    if errors_count > 0:
+      print(f"{errors_count}개 레코드에서 오류가 발생했습니다.")
+
+  except Exception as e:
+    session.rollback() # Rollback all changes if any error occurred during the batch process
+    print(f"오류: 데이터베이스 커밋 중 예외 발생: {e}. 변경사항이 롤백됩니다.")
+    errors_count += 1
+  finally:
+    with open("keyword_list.json", "w", encoding="utf-8") as f:
+      json.dump(keyword_list, f, ensure_ascii=False, indent=2)
+
 @app.get("/")
 def main():
-  createCategories()
-  createParties()
-  createKeywords("keyword_category.json")
-  createNews()
-  createBills()
+  # createCategories()
+  # createParties()
+  # createKeywords("keyword_category.json")
+  # createNews()
+  # createBills()
 
+  createKeywords1()
   session.commit()
   
   return ""

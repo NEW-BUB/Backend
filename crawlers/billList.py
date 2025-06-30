@@ -2,6 +2,8 @@ import json
 import os
 import csv
 import time
+import traceback
+
 import requests
 from bs4 import BeautifulSoup
 import xml.etree.ElementTree as ET
@@ -264,7 +266,113 @@ def create_party_keywords_json(input_csv_file, output_json_file):
     except Exception as e:
         print(f"Error processing the CSV file: {e}")
 
+def fix_processing_status_result():
+    url = "https://open.assembly.go.kr/portal/openapi/ALLBILL"
+    size = 100
+
+    csv_number = []
+    csv_number_set = set()
+
+    with open('bill_data.csv', 'r', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            csv_number.append(row)
+            csv_number_set.add(row["number"])  # 빠른 조회용 set 생성
+
+    try:
+        with open('data.csv', 'a', newline='', encoding='utf-8') as csvfile:
+
+            header = ['number', 'name', 'date', 'proponents', 'parties', 'link', 'processing_status', 'processing_result', 'summary',
+                      'keywords']
+            csv_writer = csv.DictWriter(csvfile, fieldnames=header)
+
+            if os.stat('data.csv').st_size == 0:  # 수정 → data.csv 의 크기 확인
+                csv_writer.writeheader()
+
+            for row in csv_number:
+                no = row["number"]
+                page = 1
+                while True:
+                    params = {
+                        "KEY": INTEGRATED_BILL_INFO_API_KEY,
+                        "Type": "xml",
+                        "pIndex": page,
+                        "pSize": size,
+                        "BILL_NO": no
+                    }
+
+                    response = requests.get(url, params=params)
+                    response.encoding = "utf-8"
+
+                    root = ET.fromstring(response.text)
+                    rows = root.findall(".//row")
+
+                    if not rows:
+                        break  # 이 BILL_NO에 대해 더 이상 데이터 없음
+
+                    for item in rows:
+                        bill_no = item.findtext("BILL_NO", default="")
+
+                        # 이미 처리된 bill_no 는 건너뛰기 → 지금은 csv_number_set 체크할 필요 X (이미 고정 리스트)
+                        # 그냥 중복 데이터 안 쓰면 됨
+
+                        date = item.findtext("PPSL_DT", default="")
+                        print("receive from api")
+
+                        processing_date = [
+                            date,
+                            item.findtext("JRCMIT_PROC_DT", default=""),
+                            item.findtext("LAW_PROC_DT", default=""),
+                            item.findtext("RGS_RSLN_DT", default=""),
+                            item.findtext("PROM_DT", default="")
+                        ]
+                        
+                        processing_results = [
+                            item.findtext("JRCMIT_PROC_RSLT", default=""),
+                            item.findtext("LAW_PROC_RSLT", default=""),
+                            item.findtext("RGS_CONF_RSLT", default="")
+                        ]
+                        print(bill_no, processing_date, processing_results)
+                        
+                        processing_status = 0  # ← 오타 수정
+                        for i in range(4, -1, -1):
+                            if processing_date[i] != "":
+                                processing_status = i+1
+                                break
+                            
+                        
+                        if int(row["processing_status"]) == processing_status:
+                            continue
+                        
+                        print(row["processing_status"], processing_status)
+                        print(int(row["processing_status"]) == processing_status)
+
+                        processing_variable = {2: "JRCMIT_PROC_RSLT", 3: "LAW_PROC_RSLT", 4: "RGS_CONF_RSLT"}
+                        if processing_status in [0, 1, 5]:
+                            processing_result = ""
+                        else:
+                            processing_result = item.findtext(processing_variable.get(processing_status, ""), default="")
+                        
+                        print(processing_status, processing_result)
+
+                        # 업데이트 후 csv 에 기록
+                        
+                        row["processing_status"] = processing_status
+                        row["processing_result"] = processing_result
+
+                        csv_writer.writerow(row)
+                        print("write")
+
+                    page += 1  # 다음 페이지로 이동
+
+    except FileNotFoundError:
+        print('data.csv is not found')
+
+
+
+
+
+
+
 if __name__ == "__main__":
-    input_csv_file = 'bill_data.csv'  # Replace with your CSV file path
-    output_json_file = 'party_keywords.json'
-    create_party_keywords_json(input_csv_file, output_json_file)
+    fix_processing_status_result()

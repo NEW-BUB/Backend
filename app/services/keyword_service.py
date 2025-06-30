@@ -12,6 +12,13 @@ from app.dependencies import get_db
 class KeywordService:
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
+        
+    def get_keywords(self) -> List[dict]:
+        query = self.db.query(Keyword)
+
+        query = query.order_by(Keyword.count.desc()).all()
+
+        return [{"id": keyword.id,"name": keyword.name} for keyword in query]
 
     def get_keywords_list(self, offset: int, overflow_limit: int = 30, search: str = "", category: str = "") -> List[str]:
         query = self.db.query(Keyword)

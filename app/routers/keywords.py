@@ -10,6 +10,24 @@ from app.models.keyword import Keyword
 
 router = APIRouter(prefix="/issue", tags=["issues"])
 
+import json
+
+@router.get("/all")
+async def get_keywords_list(
+        db: Session = Depends(get_db)
+):
+
+    keyword_service = KeywordService(db=db)
+
+    keywords = keyword_service.get_keywords()
+    
+    print(keywords)
+
+    with open("keyword1.json", "w", encoding="utf-8") as f:
+        json.dump(keywords, f, ensure_ascii=False, indent=2)
+
+    return ""
+
 @router.get("/", response_model=KeywordList)
 async def get_keywords_list(
         page: int = Query(1, ge=1, description="Page number"),
@@ -42,7 +60,7 @@ async def get_keywords_list(
 @router.get("/{keyword_nm}", response_model=List[dict])
 async def get_laws_news_by_keyword(
         keyword_nm: str,
-        limit: int = Query(7, ge=1, description="Limit of keywords per page"),
+        limit: int = Query(5, ge=1, description="Limit of keywords per page"),
         db: Session = Depends(get_db)
 ):  
     keyword = db.query(Keyword).filter(Keyword.name == keyword_nm).first()

@@ -9,14 +9,22 @@ from app.models.keyword_news import KeywordNews
 from app.models.news import News
 from app.models.news_law import NewsLaw
 from app.schemas.news import *
+from app.models import Law
+from app.models.keyword_law import KeywordLaw
+
+from sqlalchemy import func
+from sqlalchemy import func
 
 from fastapi import Depends
 from app.dependencies import get_db
 
+from sqlalchemy import or_, func
+
 class NewsService:
     def __init__(self, db: Session = Depends(get_db)):
         self.db = db
-
+    
+    
     def get_news_list(self, offset: int, overflow_limit: int = 30, search: str = "", category: str = "정치") -> List[NewsListItem]:
         query = self.db.query(News)
 
@@ -29,15 +37,18 @@ class NewsService:
             query = query.filter(News.id.in_(category_subquery))
 
         if search and search.strip():
-            # search_term = f"%{search.lower()}%"
-            search_term = search.lower()
-            keyword_subquery = (
-                self.db.query(KeywordNews.news_id)
-                .join(Keyword)
-                # .filter(Keyword.name.ilike(search_term))
-                .filter(Keyword.name == search_term)
+            search_term_no_space = search.replace(' ', '').lower()
+
+            keyword_subquery = self.db.query(KeywordNews.news_id).join(Keyword).filter(
+                func.lower(func.replace(Keyword.name, ' ', '')).ilike(f'%{search_term_no_space}%')
             )
-            query = query.filter(News.id.in_(keyword_subquery))
+
+            query = query.filter(
+                or_(
+                    News.id.in_(keyword_subquery),
+                    func.lower(func.replace(News.title, ' ', '')).ilike(f'%{search_term_no_space}%')
+                )
+            )
 
         query = query.order_by(News.date.desc()).offset(offset).limit(overflow_limit).all()
 
@@ -153,3 +164,31 @@ class NewsService:
             for news_item in query
         ]
         return news
+
+    def get_news_related_laws(self, offset: int, overflow_limit: int, keywords: List[str]):
+        subq = (
+            self.db.query(KeywordLaw.law_id)
+            .join(Keyword)
+            .filter(Keyword.name.in_(keywords))
+            .group_by(KeywordLaw.law_id)
+            .having(func.count(KeywordLaw.keyword_id) >= 1)
+            .subquery()
+        )
+
+        query = (
+            self.db.query(Law)
+            .filter(Law.id.in_(subq))
+            .order_by(Law.date.desc())
+            .offset(offset)
+            .limit(overflow_limit)
+            .all()
+        )
+
+        law_list_items = [
+            {
+                "id": law.id,
+                "name": law.name
+            }
+            for law in query
+        ]
+        return law_list_items

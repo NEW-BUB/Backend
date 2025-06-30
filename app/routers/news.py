@@ -44,18 +44,21 @@ def get_news_list(
 @router.post("/match-laws/")
 async def match_laws_by_keywords(
     req: NewsKeywordRequest,
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, description="Limit of keywords per page"),
     db: Session = Depends(get_db)
 ):
-    from app.services.law_service import LawService
-    law_service = LawService(db=db)
-    all_laws = law_service.get_complete_laws_list(limit=1000)
-    matched_laws = []
-    for law in all_laws:
-        law_id = law["id"]
-        law_keywords = law_service.get_law_keywords(law_id)
-        if len(set(req.keywords) & set(law_keywords)) >= 2:
-            matched_laws.append(law)
-    return {"matched_laws": matched_laws}
+    offset = (page - 1) * limit
+    overflow_limit = limit + 1
+
+    news_service = NewsService(db=db)
+    matched_laws = news_service.get_news_related_laws(offset=offset, overflow_limit=overflow_limit, keywords=req.keywords)
+
+    has_more = len(matched_laws) > limit
+    if has_more:
+        matched_laws = matched_laws[:limit]
+
+    return {"matched_laws": matched_laws, "has_more": has_more}
 
 @router.get("/{news_id}", response_model=NewsResponse)
 async def get_news(
